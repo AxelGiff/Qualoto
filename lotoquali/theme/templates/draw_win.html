@@ -1,0 +1,51 @@
+{% extends 'base.html' %} {% block content %}
+<h2 class="text-3xl font-bold mb-6">Résultats du tirage</h2>
+<p class="text-lg mb-4">Tirage du {{ draw.draw_date|date:"d F Y" }}</p>
+
+<div class="mb-6">
+  <p class="font-semibold">Numéros gagnants principaux :</p>
+  <p class="text-blue-600 font-bold">{{ winning_numbers|join:", " }}</p>
+</div>
+
+<div class="mb-6">
+  <p class="font-semibold">Numéros bonus gagnants :</p>
+  <p class="text-orange-600 font-bold">{{ bonus_numbers|join:", " }}</p>
+</div>
+
+<h3 class="text-2xl font-semibold mb-4">Joueurs</h3>
+
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white shadow-md rounded-lg">
+    <thead class="bg-gray-800 text-black text-lg">
+      <tr>
+        <th class="py-3 px-4 text-left">Joueur</th>
+        <th class="py-3 px-4 text-left">Numéros principaux</th>
+        <th class="py-3 px-4 text-left">Numéros bonus</th>
+        <th class="py-3 px-4 text-left">Correspondance</th>
+        <th class="py-3 px-4 text-left">Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr class="border-b border-gray-200">
+        <td class="py-3 px-4">{{ player.username }}</td>
+        <td class="py-3 px-4">{{ player.main_numbers|join:", " }}</td>
+        <td class="py-3 px-4">{{ player.bonus_numbers|join:", " }}</td>
+        <td class="py-3 px-4">
+          {{ player.correct_main_numbers }} numéros principaux corrects,
+          {{ player.correct_bonus_numbers }} bonus corrects
+        </td>
+        <td class="py-3 px-4">
+          {% if player.has_won %}
+          <span class="text-green-600 font-bold">Gagné !</span>
+          {% else %}
+          <span class="text-red-600 font-bold">Perdu</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+  {% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %} {% block content %}
+
+<div class="flex">
+  <div class="w-2/3 pr-8">
+    <h2 class="text-2xl font-bold mb-4">Créer un tirage</h2>
+    <div id="players-numbers">
+      <label for="number_of_random">Créer des joueurs aléatoires</label>
+      <input
+        type="number"
+        id="number_of_random"
+        name="number_of_random"
+        placeholder="Nombre aléatoire de joueurs"
+      />
+    </div>
+
+    <!-- Section pour ajouter un joueur -->
+    <div id="players-section">
+      <button
+        onclick="addPlayer()"
+        class="bg-green-500 text-white px-4 py-2 rounded mb-4"
+      >
+        Ajouter un joueur
+      </button>
+    </div>
+
+    <!-- Bouton pour soumettre tous les joueurs -->
+    <button
+      onclick="submitPlayers()"
+      class="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+    >
+      Soumettre la participation
+    </button>
+  </div>
+</div>
+
+<!-- Modal pour compléter la grille -->
+<div
+  id="gridModal"
+  class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+>
+  <div class="bg-white p-8 rounded-lg shadow-lg w-1/2">
+    <h3 class="text-xl font-bold mb-4">
+      Grille du joueur <span id="player-grid-title"></span>
+    </h3>
+    <div class="grid grid-cols-10 gap-2">
+      <!-- Liste des numéros principaux -->
+      {% for num in numbers %}
+      <button
+        onclick="toggleSelection(this)"
+        data-id="{{ num }}"
+        class="text-blue-700 w-12 h-12 rounded-full"
+      >
+        {{ num }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <h3 class="text-xl font-bold mb-4 mt-4">Sélectionnez vos numéros bonus</h3>
+    <div class="grid grid-cols-5 gap-2">
+      <!-- Liste des numéros bonus -->
+      {% for bonu in bonus %}
+      <button
+        onclick="toggleSelection(this)"
+        data-id="{{ bonu }}"
+        class="text-orange-700 w-12 h-12 rounded-full"
+      >
+        {{ bonu }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <button
+      onclick="saveGrid()"
+      class="bg-green-500 text-white px-4 py-2 rounded mt-4"
+    >
+      Sauvegarder la grille
+    </button>
+    <button
+      onclick="closeModal()"
+      class="bg-red-500 text-white px-4 py-2 rounded mt-4"
+    >
+      Annuler
+    </button>
+  </div>
+</div>
+
+<script>
+  let players = [];
+  let currentPlayerIndex = null;
+
+  function removePlayer(playerIndex) {
+    const playerSection = document.getElementById("players-section");
+    const playerDiv = document.getElementById(`player-${playerIndex}`);
+    if (playerDiv) {
+      playerSection.removeChild(playerDiv);
+    }
+
+    if (playerIndex >= 0 && playerIndex < players.length) {
+      players.splice(playerIndex, 1);
+    }
+    players.forEach((_, index) => {
+      const playerDiv = document.getElementById(`player-${index}`);
+      if (playerDiv) {
+        playerDiv.id = `player-${index}`; // Mettre à jour l'ID
+        const button = playerDiv.querySelector('button[id^="player-"]');
+        if (button) {
+          button.id = `player-${index}`; // Mettre à jour l'ID du bouton
+        }
+      }
+    });
+  }
+
+  // Ajout de joueur dynamique
+  function addPlayer() {
+    const playerSection = document.getElementById("players-section");
+    const playerIndex = players.length;
+
+    // Ajouter un champ input pour le joueur
+    playerSection.insertAdjacentHTML(
+      "beforeend",
+      `
+          <div id="player-${playerIndex}" class="mb-4">
+            <input type="text" id="player-name-${playerIndex}" placeholder="Pseudo" class="border rounded px-4 py-2 mr-4">
+            <button onclick="openGridModal(${playerIndex})" class="bg-blue-500 text-white px-4 py-2 rounded">
+              Compléter la grille
+            </button>
+            <button id="player-${playerIndex}" onclick="removePlayer(${playerIndex})" class="bg-red-500 text-white px-4 py-2 rounded">
+              Supprimer le joueur </button>
+          </div>
+        `
+    );
+    // Réinitialiser la grille
+    // Ajouter le joueur à la liste
+    players.push({ name: "", numbers: [], bonus: [] });
+  }
+
+  // Fonction pour ouvrir le modal de la grille
+  function openGridModal(playerIndex) {
+    document.getElementById("gridModal").classList.remove("hidden");
+    document.getElementById("player-grid-title").innerText = playerIndex + 1;
+    currentPlayerIndex = playerIndex;
+
+    // Réinitialiser la grille avant de charger les sélections du joueur actuel
+
+    // Charger les sélections du joueur actuel
+    if (players[playerIndex]) {
+      // Charger les numéros principaux
+      players[playerIndex].numbers.forEach((num) => {
+        const button = document.querySelector(`button[data-id="${num}"]`);
+        const numId = parseInt(button.getAttribute("data-id"));
+        // Vérifier si le bouton appartient à la plage des numéros principaux (1 à 49)
+        if (numId >= 1 && numId <= 49) {
+          button.classList.remove("text-blue-700");
+          button.classList.add("bg-blue-700", "text-white");
+        }
+      });
+    }
+
+    // Charger les numéros bonus
+    players[playerIndex].bonus.forEach((bonu) => {
+      const button = document.querySelector(`button[data-id="${bonu}"]`);
+      const numId = parseInt(button.getAttribute("data-id"));
+
+      // Vérifier si le bouton appartient à la plage des numéros bonus (1 à 10)
+      if (numId >= 1 && numId <= 10) {
+        button.classList.remove("text-orange-700");
+        button.classList.add("bg-orange-700", "text-white");
+      }
+    });
+  }
+
+  // Fermer le modal
+  function closeModal() {
+    document.getElementById("gridModal").classList.add("hidden");
+    resetGridSelection();
+  }
+
+  // Fonction pour réinitialiser la sélection de la grille
+  function resetGridSelection() {
+    document.querySelectorAll("button[data-id]").forEach((button) => {
+      button.classList.remove("text-white");
+      if (button.classList.contains("bg-blue-700")) {
+        button.classList.remove("bg-blue-700");
+        button.classList.add("text-blue-700");
+      } else if (button.classList.contains("bg-orange-700")) {
+        button.classList.add("text-orange-700");
+        button.classList.remove("bg-orange-700");
+      }
+    });
+  }
+  // Fonction pour sauvegarder la grille
+  function saveGrid() {
+    if (currentPlayerIndex !== null) {
+      const player = players[currentPlayerIndex];
+
+      // Réinitialiser les numéros principaux et bonus pour le joueur actuel
+      player.numbers = [];
+      player.bonus = [];
+
+      // Séparer correctement les numéros principaux et les numéros bonus
+      document.querySelectorAll("button[data-id]").forEach((button) => {
+        const numId = parseInt(button.getAttribute("data-id"));
+
+        // Vérifier si le bouton est un numéro principal sélectionné
+        if (button.classList.contains("bg-blue-700")) {
+          if (numId >= 1 && numId <= 49) {
+            player.numbers.push(numId); // Ajouter aux numéros principaux
+          }
+        }
+
+        // Vérifier si le bouton est un numéro bonus sélectionné
+        if (button.classList.contains("bg-orange-700")) {
+          if (numId >= 1 && numId <= 10) {
+            player.bonus.push(numId); // Ajouter aux numéros bonus
+          }
+        }
+      });
+
+      // Enregistrer le nom du joueur
+      player.name = document.getElementById(
+        `player-name-${currentPlayerIndex}`
+      ).value;
+
+      // Fermer le modal après la sauvegarde
+      closeModal();
+
+      // Mettre à jour l'affichage du joueur
+      updatePlayerDisplay(currentPlayerIndex);
+    }
+  }
+  // Sélectionner et désélectionner les numéros de grille
+  // Sélectionner et désélectionner les numéros de grille
+  let selectedNumbers = [];
+  let selectedBonus = [];
+  // Fonction pour basculer la sélection des numéros
+  function toggleSelection(element) {
+    const numId = parseInt(element.getAttribute("data-id"));
+    const isMainNumber = numId <= 49;
+    const selectedMainNumbers =
+      document.querySelectorAll(".bg-blue-700").length;
+    const selectedBonusNumbers =
+      document.querySelectorAll(".bg-orange-700").length;
+
+    if (
+      element.classList.contains("text-blue-700") &&
+      selectedMainNumbers < 5
+    ) {
+      element.classList.remove("text-blue-700");
+      element.classList.add("bg-blue-700", "text-white");
+    } else if (element.classList.contains("bg-blue-700")) {
+      element.classList.remove("bg-blue-700", "text-white");
+      element.classList.add("text-blue-700");
+    } else if (
+      element.classList.contains("text-orange-700") &&
+      selectedBonusNumbers < 2
+    ) {
+      element.classList.remove("text-orange-700");
+      element.classList.add("bg-orange-700", "text-white");
+    } else if (element.classList.contains("bg-orange-700")) {
+      element.classList.remove("bg-orange-700", "text-white");
+      element.classList.add("text-orange-700");
+    }
+  }
+  // Soumettre les joueurs avec leurs grilles
+  function submitPlayers() {
+    fetch(window.location.href, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({
+        players,
+        number_of_random: document.getElementById("number_of_random").value,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.redirect_url) {
+          window.location.href = `/start_draw/${data.draw_id}`; // Rediriger vers la page du tirage window.location.href
+        }
+        // Réinitialiser après soumission
+        players = [];
+        document.getElementById("players-section").innerHTML = "";
+      });
+  }
+
+  function updatePlayerDisplay(playerIndex) {
+    const player = players[currentPlayerIndex];
+
+    const playerSection = document.getElementById("players-section");
+    const playerDiv = document.getElementById(`player-${playerIndex}`);
+    // Recherche du bouton de complétion et le cacher
+    const completeButton = playerDiv.querySelector(
+      'button[onclick^="openGridModal"]'
+    );
+    if (completeButton) {
+      completeButton.style.display = "none"; // Masquer le bouton
+    }
+
+    // Créer un élément pour afficher la grille
+    const playerGridDisplay = document.createElement("div");
+    playerGridDisplay.className = "grid-display mt-2"; // Ajoutez une classe de style si nécessaire
+    playerGridDisplay.innerHTML = `
+      <p>Numéros principaux: ${player.numbers.join(", ")}</p>
+      <p>Numéros bonus: ${player.bonus.join(", ")}</p>
+    `;
+
+    // Ajoutez l'affichage de la grille juste après le joueur
+    playerDiv.appendChild(playerGridDisplay);
+  }
+</script>
+{% endblock %}
