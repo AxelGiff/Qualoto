@@ -247,7 +247,7 @@ def logout_view(request):
 
 
 def start_draw(request, draw):
-    # Utilisation de get_object_or_404 pour une meilleure gestion des erreurs
+    # Utilisation de get_object_or_404 pour la gestion des erreurs
     draw_instance = get_object_or_404(Draws, draw_id=draw)
     
     # Convertit les chaînes de nombres gagnants en listes
@@ -280,56 +280,96 @@ def start_draw(request, draw):
     return render(request, 'start_draw.html', context)
 
 
+
 def draw_win(request, draw):
-    # Utilisation de get_object_or_404 pour une meilleure gestion des erreurs
     draw_instance = get_object_or_404(Draws, draw_id=draw)
     
     # Convertir les chaînes de nombres gagnants en listes
-    winning_numbers_list = draw_instance.winning_main_numbers.split(',')
-    winning_bonus_list = draw_instance.winning_bonus_numbers.split(',')
-    
-    # Convertir les listes de nombres gagnants en ensembles pour une comparaison facile
-    winning_numbers_set = set(winning_numbers_list)
-    winning_bonus_set = set(winning_bonus_list)
+    winning_numbers_list = list(map(int, draw_instance.winning_main_numbers.split(',')))
+    winning_bonus_list = list(map(int, draw_instance.winning_bonus_numbers.split(',')))
     
     # Récupérer tous les tickets associés à ce tirage
     tickets = Tickets.objects.filter(draw=draw_instance).select_related('user')
     
-    # Préparer les données des joueurs
     players = []
+    
     for ticket in tickets:
-        player_main_numbers = ticket.main_numbers.split(',')
-        player_bonus_numbers = ticket.bonus_numbers.split(',')
+        player_main_numbers = list(map(int, ticket.main_numbers.split(',')))
+        player_bonus_numbers = list(map(int, ticket.bonus_numbers.split(',')))
         
-        # Vérifier si le joueur a tous les numéros gagnants (même sans ordre)
-        player_main_set = set(player_main_numbers)
-        player_bonus_set = set(player_bonus_numbers)
+        # Correspondance des numéros gagnants
+        correct_main_numbers = len(set(player_main_numbers) & set(winning_numbers_list))
+        correct_bonus_numbers = len(set(player_bonus_numbers) & set(winning_bonus_list))
         
-        correct_main_numbers = len(player_main_set & winning_numbers_set)
-        correct_bonus_numbers = len(player_bonus_set & winning_bonus_set)
-        
-        has_won = correct_main_numbers == len(winning_numbers_set) and correct_bonus_numbers == len(winning_bonus_set)
-        
+        # Calcul de la proximité par la somme
+        sum_difference = evaluate_closest_sum(winning_numbers_list, player_main_numbers)
+        ## A MODIFIER CAR ERREUR NAFFICHE PAS LES GAINS
+        has_won = correct_main_numbers > 0 or correct_bonus_numbers > 0  
+
         player_data = {
             'username': ticket.user.username,
             'main_numbers': player_main_numbers,
             'bonus_numbers': player_bonus_numbers,
             'correct_main_numbers': correct_main_numbers,
             'correct_bonus_numbers': correct_bonus_numbers,
-            'has_won': has_won  
+            'sum_difference': sum_difference,
+            'has_won': has_won,
         }
         
         players.append(player_data)
-
-        draw_instance.isFinished = True
-        draw_instance.save()  
     
+    # Trier les joueurs selon la correspondance et la proximité
+    players_sorted = sorted(players, key=lambda p: (p['correct_main_numbers'], p['correct_bonus_numbers'], -p['sum_difference']), reverse=True)
+    
+    # Assigner les gains
+    max_winners = 10
+    prizes = checkingPrize(min(len(players_sorted), max_winners))
+
+    for idx, player in enumerate(players_sorted):
+        if idx < max_winners:
+            player['rank'] = idx + 1
+            player['prize'] = prizes[idx]  
+        else:
+            player['rank'] = '-'  
+    draw_instance.isFinished = True
+    draw_instance.save()
+
     context = {
         'draw': draw_instance,
         'winning_numbers': winning_numbers_list,
         'bonus_numbers': winning_bonus_list,
-        'players': players,
-        'total_players': len(players)
+        'players': players_sorted,
+        'total_players': len(players_sorted),
     }
     
     return render(request, 'draw_win.html', context)
+
+
+def evaluate_closest_sum(winning_numbers, player_numbers):
+    winning_sum = sum(map(int, winning_numbers))
+    player_sum = sum(map(int, player_numbers))
+    return abs(winning_sum - player_sum)
+
+
+def checkingPrize(nbPlayers):
+    prize_distribution = [
+        0.40,  # 40% pour le 1er
+        0.20,  # 20% pour le 2ème
+        0.12,  # 12% pour le 3ème
+        0.07,  # 7% pour le 4ème
+        0.06,  # 6% pour le 5ème
+        0.05,  # 5% pour le 6ème
+        0.04,  # 4% pour le 7ème
+        0.03,  # 3% pour le 8ème
+        0.02,  # 2% pour le 9ème
+        0.01   # 1% pour le 10ème
+    ]
+    
+    # Ajustement des gains si moins de 10 joueurs
+    if nbPlayers < 10:
+        total_percentage = sum(prize_distribution[:nbPlayers])
+        adjusted_prizes = [(prize / total_percentage) * 3_000_000 for prize in prize_distribution[:nbPlayers]]
+    else:
+        adjusted_prizes = [prize * 3_000_000 for prize in prize_distribution]
+    
+    return adjusted_prizes
