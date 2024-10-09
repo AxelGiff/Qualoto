@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 
-import json  # Importez le module json
+import json  
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
@@ -18,7 +18,7 @@ from .forms import TicketsForm,RegisterForm
 from django.shortcuts import render, get_object_or_404
 import random
 from django.utils import timezone
-from django.contrib.auth.models import AnonymousUser  # Importez AnonymousUser ici
+from django.contrib.auth.models import AnonymousUser  
 
 """ # Create your views here.
 def UsersList(request):
@@ -82,7 +82,6 @@ def participate_draw(request):
         players = data.get('players', [])
         number_of_random = data.get('number_of_random')
         print(number_of_random)
-        # Générer aléatoirement 5 numéros principaux et 2 numéros bonus pour le tirage
         main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
         bonus_numbers = random.sample(range(1, 11), 2)  # 2 numéros bonus entre 1 et 10
 
@@ -94,13 +93,11 @@ def participate_draw(request):
             isFinished=False
         )
 
-        # Créer des joueurs aléatoires s'ils sont spécifiés
         if number_of_random:
             for _ in range(int(number_of_random)):
                 random_username = f"Joueur{random.randint(1000, 9999)}"
                 random_user, created = Users.objects.get_or_create(username=random_username)
                 
-                # Générer aléatoirement des numéros pour le joueur
                 random_main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
                 random_bonus_numbers = random.sample(range(1, 11), 2)  # 2 numéros bonus entre 1 et 10
                 
@@ -114,7 +111,6 @@ def participate_draw(request):
 
         # Traiter les joueurs soumis par l'utilisateur
         for player in players:
-            # Traiter chaque joueur
             name = player.get('name')
             numbers = player.get('numbers')
             bonus = player.get('bonus')
@@ -122,7 +118,6 @@ def participate_draw(request):
             if not name or not numbers or not bonus:
                 return JsonResponse({'error': f'Informations manquantes pour le joueur: {name}'}, status=400)
 
-            # Créer l'utilisateur s'il n'existe pas déjà
             user, created = Users.objects.get_or_create(username=name)
 
             # Créer un ticket pour le joueur lié au nouveau tirage
@@ -158,7 +153,6 @@ def simulate_draw(request):
         winning_numbers_list = [int(n) for n in winning_main_numbers.split(',')]
         bonus_numbers_list = [int(n) for n in winning_bonus_numbers.split(',')]
         
-        # Ici, vous pouvez enregistrer les résultats du tirage
         draw = Draws.objects.create(
             winning_main_numbers=winning_numbers_list,
             winning_bonus_numbers=bonus_numbers_list
@@ -170,19 +164,17 @@ def simulate_draw(request):
     return render(request, 'simulate_draw.html')
 
 def create_draw(request):
-    draws = Draws.objects.all().order_by('draw_date')[:10]  # Exemple pour afficher 3 tirages
+    draws = Draws.objects.all().order_by('draw_date')[:10] 
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
     bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
     
     if request.method == 'POST':
-        # Parse les données JSON envoyées
         data = json.loads(request.body)
         selected_numbers = [num for num in data.get('selected_numbers') if num < 50]
         selected_bonus = selected_numbers[5:]
         draw_id = 1
         print(selected_numbers[5:])
         
-        # Vérifier que toutes les données nécessaires sont présentes
         if not selected_numbers or not selected_bonus or not draw_id:
             return JsonResponse({'message': 'Des informations manquent.'}, status=400)
         
@@ -196,20 +188,18 @@ def create_draw(request):
         # Créer et enregistrer le ticket
         ticket = Tickets.objects.create(
             draw=draw,
-            main_numbers=selected_numbers_str,  # Stocker sous forme de chaîne de caractères
-            bonus_numbers=selected_bonus_str,  # Stocker sous forme de chaîne de caractères
-            user="Users object (57)"  # L'utilisateur connecté
+            main_numbers=selected_numbers_str,  
+            bonus_numbers=selected_bonus_str,  
+            user="Users object (57)"  
         )
-        
-        # Retourner une réponse JSON de succès
         return JsonResponse({'message': 'Ticket soumis avec succès !'})
     
-    # Si la méthode est GET, on affiche la page
+    # Si la méthode GET, on affiche la page
     return render(request, 'create_draw.html', {
         'draws': draws,
         'numbers': numbers,
         'bonus': bonus,
-        'csrf_token': request.COOKIES['csrftoken']  # Récupérer le token CSRF pour l'usage en JS
+        'csrf_token': request.COOKIES['csrftoken'] 
     })
 
 from django.shortcuts import render, redirect
@@ -231,9 +221,9 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')  # ou une autre page après l'inscription
+            return redirect('home')  
         else:
-            print(form.errors)  # Ajoutez ceci pour le débogage
+            print(form.errors)
     else:
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
@@ -264,7 +254,6 @@ def start_draw(request, draw):
     winning_numbers_list = draw_instance.winning_main_numbers.split(',')
     winning_bonus_list = draw_instance.winning_bonus_numbers.split(',')
     
-    # Récupère tous les tickets associés à ce tirage
     tickets = Tickets.objects.filter(draw=draw_instance).select_related('user')
     
     # Prépare les données des joueurs
@@ -316,27 +305,24 @@ def draw_win(request, draw):
         player_main_set = set(player_main_numbers)
         player_bonus_set = set(player_bonus_numbers)
         
-        # Calcul du nombre de numéros principaux et bonus correctement devinés
         correct_main_numbers = len(player_main_set & winning_numbers_set)
         correct_bonus_numbers = len(player_bonus_set & winning_bonus_set)
         
-        # Déterminer si le joueur a gagné en fonction des critères que vous définissez
         has_won = correct_main_numbers == len(winning_numbers_set) and correct_bonus_numbers == len(winning_bonus_set)
         
-        # Préparer les données du joueur avec l'information du statut de victoire
         player_data = {
             'username': ticket.user.username,
             'main_numbers': player_main_numbers,
             'bonus_numbers': player_bonus_numbers,
             'correct_main_numbers': correct_main_numbers,
             'correct_bonus_numbers': correct_bonus_numbers,
-            'has_won': has_won  # Ajouter l'état de victoire
+            'has_won': has_won  
         }
         
         players.append(player_data)
 
         draw_instance.isFinished = True
-        draw_instance.save()  # Sauvegarder la modification dans la base de données
+        draw_instance.save()  
     
     context = {
         'draw': draw_instance,
@@ -346,5 +332,4 @@ def draw_win(request, draw):
         'total_players': len(players)
     }
     
-    # Renvoyer la page avec le contexte
     return render(request, 'draw_win.html', context)

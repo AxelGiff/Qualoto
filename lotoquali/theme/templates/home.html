@@ -5,30 +5,78 @@
        <!-- Main Section -->
        <section class="flex flex-col-reverse p-5 mb-32 md:flex-row md:justify-center md:items-center">
         <div class="showcase-left my-8 mx-4 text-center md:text-left md:w-1/2">
-            <h1 class="font-extrabold text-3xl md:text-4xl my-8">
-                All your files in one secure location, accessible
-                anywhere.
+            <h1 class="font-extrabold text-3xl md:text-4xl my-8 ">
+                Participez à un tirage de <span class="font-bold text-blue-800">Qualité</span>
             </h1>
-            <p class="font-semibold text-xl my-8">
-                Fylo stores your most important files in one secure
-                location. Access them wherever you need, share and
-                collaborate with friends, family, and co-workers.
-            </p>
-
+            <p class="font-lg text-xl my-8">
+                Et gagnez jusqu'à
+            </p><br/>
+            <p class="font-bold text-xl my-8">
+            3.000.000 €
+          </p>      
             <div class="flex flex-col md:flex-row md:justify-start md:items-center">
-                <input type="text" name="email" placeholder="Enter Your  Email" id="email-input"
-                    class="border-2 p-4 border-black rounded-lg my-8 text-xl md:w-1/2 md:text-base md:p-3" />
-
                 <button
-                    class="bg-blue-900 p-4 rounded-lg text-white text-2xl md:text-base md:p-3 md:ml-4 md:w-1/3 hover:opacity-75">
-                    Get Started
-                </button>
+                    class="bg-blue-400 p-4 rounded-lg text-white text-2xl md:text-base md:p-3 md:ml-4 md:w-1/3 hover:opacity-75">
+                    Rejoignez-nous et gagnez gros !
+                  </button>
             </div>
         </div>
 
         <div class="showcase-right my-8 md:w-1/2">
-            <img src="../static/assets/bleu-landingpage.jpg" alt="illustration-1" />
+            <img src="../static/assets/undraw_Terms_re_6ak4.png" alt="illustration-1" />
         </div>
     </section>
+    <section class="flex flex-col-reverse lg:flex-row lg:items-center lg:justify-start p-5 mt-32 bg-gray-200">
+      <div class="page-left my-16 md:py-8 md:mx-4 lg:w-1/2">
+          <div class="stay-productive">
+              <h2 class="text-center md:text-left md:text-4xl text-2xl font-bold my-8">
+                  Stay productive, wherever you are
+              </h2>
+              <p class="my-4 text-xl text-gray-600">
+                  Never let location be an issue when accessing your
+                  files. Fylo has you covered for all of your file
+                  storage needs.
+              </p>
+              <p class="my-4 text-xl text-gray-600">
+                  Securely share files and folders with friends,
+                  family and colleagues for live collaboration. No
+                  email attachments required!
+              </p>
+              <div
+                  class="flex items-center justify-center w-3/6 mx-auto my-16 border-b-2 border-cyan-500 md:items-start md:justify-start md:mx-0 md:w-3/12 lg:w-2/6">
+                  <a class="text-center md:text-left text-cyan-500 text-base mr-2" href="#">See how Fylo works
+                  </a>
+
+                  <img src="images/icon-arrow.svg" alt="icon-arrow" class="w-4" />
+              </div>
+          </div>
+
+          <div class="testimonial bg-white p-8 mx-4 text-black rounded shadow-lg">
+              <div class="testimonial-text">
+                  <img src="images/icon-quotes.svg" alt="icon-quotes" class="w-4" />
+                  <p class="my-4 text-lg font-semibold">
+                      Fylo has improved our team productivity by an
+                      order of magnitude. Since making the switch our
+                      team has become a well-oiled collaboration
+                      machine.
+                  </p>
+              </div>
+
+              <div class="testiomnial-person flex flex-row">
+                  <div>
+                      <img src="images/avatar-testimonial.jpg" alt="avatar" class="w-12 rounded-full mr-4" />
+                  </div>
+                  <div>
+                      <p class="font-bold">Kyle Burton</p>
+                      <p class="text-sm">Founder & CEO, Huddle</p>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div class="page-right lg:w-1/2">
+          <img src="images/illustration-2.svg" alt="illustration-2" class="w-full" />
+      </div>
+  </section>
 
 {% endblock %}
