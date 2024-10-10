@@ -11,6 +11,7 @@
         name="number_of_random"
         placeholder="Nombre aléatoire de joueurs"
       />
+      <input type="checkbox" id="participation" onclick="" name="participation" value="participation" /> Je participe
     </div>
 
     <!-- Section pour ajouter un joueur -->
@@ -229,7 +230,6 @@
     }
   }
   // Sélectionner et désélectionner les numéros de grille
-  // Sélectionner et désélectionner les numéros de grille
   let selectedNumbers = [];
   let selectedBonus = [];
   // Fonction pour basculer la sélection des numéros
@@ -272,6 +272,7 @@
       body: JSON.stringify({
         players,
         number_of_random: document.getElementById("number_of_random").value,
+        participation: document.getElementById("participation").checked,
       }),
     })
       .then((response) => response.json())
@@ -290,7 +291,6 @@
 
     const playerSection = document.getElementById("players-section");
     const playerDiv = document.getElementById(`player-${playerIndex}`);
-    // Recherche du bouton de complétion et le cacher
     const completeButton = playerDiv.querySelector(
       'button[onclick^="openGridModal"]'
     );

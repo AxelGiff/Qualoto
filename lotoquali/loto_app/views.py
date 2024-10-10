@@ -20,55 +20,15 @@ import random
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser  
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
 """ # Create your views here.
 def UsersList(request):
     utilisateurs = Users.objects.all()
     data = [{'id_user': utilisateur.id_user, 'nom': utilisateur.nom,'prenom': utilisateur.prenom,'role': utilisateur.role,'email':utilisateur.email} for utilisateur in utilisateurs]
     serializer=UtilisateursSerializer(utilisateurs,many=True)
     return JsonResponse(serializer.data, safe=False)
-
-def Dashboard(request):
-    utilisateur_connecte = request.user
-
-    # Assurez-vous que l'utilisateur connecté est une instance de votre modèle `Utilisateurs`
-    try:
-        utilisateur = Utilisateurs.objects.get(prenom=utilisateur_connecte.prenom)
-        prenom_utilisateur_connecte = utilisateur.prenom
-    except Utilisateurs.DoesNotExist:
-        prenom_utilisateur_connecte = ''
-
-    dashboard_data = {
-        'prenom': prenom_utilisateur_connecte,
-        # Ajoutez d'autres données du tableau de bord ici si nécessaire
-    }
-    return JsonResponse(dashboard_data)
-
-
-
-@login_required
-def ma_vue_protegee(request):
-    # Cette vue nécessite une authentification
-    return HttpResponse("Bienvenue sur la page protégée !")
-
-
-
-
-@csrf_exempt
-def connexion_utilisateur(request):
-    data = json.loads(request.body)
-    usermane = data.get('username')
-
-    # Authenticate user with email and password
-    try:
-        utilisateur = Utilisateurs.objects.get(usermane=username)
-        login(request, utilisateur)
-        return JsonResponse({'username': utilisateur.username})
-
-    except Utilisateurs.DoesNotExist:
-        return JsonResponse({'erreur': 'Utilisateur non trouvé'}, status=400)
-
-
- """
+"""
 def draw_view(request):
     draws = Draws.objects.all().order_by('draw_date')[:3]  # Exemple pour afficher 3 tirages
 
@@ -78,13 +38,19 @@ def draw_view(request):
 def participate_draw(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data)
         players = data.get('players', [])
         number_of_random = data.get('number_of_random')
-        print(number_of_random)
+        participation = data.get('participation')  
         main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
         bonus_numbers = random.sample(range(1, 11), 2)  # 2 numéros bonus entre 1 et 10
-
+        
+        if participation:  
+            user = request.user 
+            players.append({
+                'name': user.username,
+                'numbers': random.sample(range(1, 50), 5),
+                'bonus': random.sample(range(1, 11), 2)
+            })
         # Créer un nouveau tirage
         new_draw = Draws.objects.create(
             draw_date=timezone.now(),
@@ -202,8 +168,6 @@ def create_draw(request):
         'csrf_token': request.COOKIES['csrftoken'] 
     })
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
 
 def home_view(request):
     username = request.session.get('username')
@@ -321,7 +285,8 @@ def draw_win(request, draw):
     # Trier les joueurs selon la correspondance et la proximité
     players_sorted = sorted(players, key=lambda p: (p['correct_main_numbers'], p['correct_bonus_numbers'], -p['sum_difference']), reverse=True)
     
-    # Assigner les gains
+
+ # Assigner les gains
     max_winners = 10
     prizes = checkingPrize(min(len(players_sorted), max_winners))
 
@@ -331,6 +296,8 @@ def draw_win(request, draw):
             player['prize'] = prizes[idx]  
         else:
             player['rank'] = '-'  
+
+   
     draw_instance.isFinished = True
     draw_instance.save()
 
@@ -343,12 +310,6 @@ def draw_win(request, draw):
     }
     
     return render(request, 'draw_win.html', context)
-
-
-def evaluate_closest_sum(winning_numbers, player_numbers):
-    winning_sum = sum(map(int, winning_numbers))
-    player_sum = sum(map(int, player_numbers))
-    return abs(winning_sum - player_sum)
 
 
 def checkingPrize(nbPlayers):
@@ -373,3 +334,8 @@ def checkingPrize(nbPlayers):
         adjusted_prizes = [prize * 3_000_000 for prize in prize_distribution]
     
     return adjusted_prizes
+def evaluate_closest_sum(winning_numbers, player_numbers):
+    winning_sum = sum(map(int, winning_numbers))
+    player_sum = sum(map(int, player_numbers))
+    return abs(winning_sum - player_sum)
+

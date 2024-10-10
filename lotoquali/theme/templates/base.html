@@ -14,15 +14,24 @@
       <nav class="container mx-auto flex justify-between items-center">
         <a href="{% url 'home' %}" class="text-2xl font-bold">Qualoto.</a>
         <div>
+          {% if user.username %}
           <a
             href="{% url 'participate_draw' %}"
             class="mx-4 hover:text-[#ecab39]"
             >Jouer</a
           >
+          {% else %}
+          <a
+            href="{% url 'register' %}"
+            class="mx-4 hover:text-[#ecab39]"
+            >Jouer</a
+          >
+          {% endif %}
+
           <a href="{% url 'create_draw' %}" class="mx-4 hover:text-[#ecab39]"
             >Résultats</a
           >
-          <a href="#" class="mx-4 hover:text-[#ecab39]">Comment jouer</a>
+          
 
           {% if user.username %}
           <!-- Afficher le nom de l'utilisateur connecté -->
@@ -61,7 +70,7 @@
 
     <footer class="bg-[#1d2b41] text-white p-4 mt-8">
       <div class="container mx-auto text-center">
-        &copy; 2024 Loterie Bleue. Tous droits réservés.
+        &copy; 2024 Qualoto. Tous droits réservés.
       </div>
     </footer>
   </body>
