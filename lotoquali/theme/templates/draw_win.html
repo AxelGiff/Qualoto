@@ -1,5 +1,4 @@
-{% extends 'base.html' %} 
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <h2 class="text-3xl font-bold mb-6">Résultats du tirage</h2>
 <p class="text-lg mb-4">Tirage du {{ draw.draw_date|date:"d F Y" }}</p>
 
@@ -37,13 +36,12 @@
           {{ player.correct_main_numbers }} numéros principaux corrects,
           {{ player.correct_bonus_numbers }} bonus corrects
         </td>
-        <td class="py-3 px-4">{{ player.rank }}</td> <!-- Affichage du rang -->
+        <td class="py-3 px-4">{{ player.rank }}</td>
+        <!-- Affichage du rang -->
         <td class="py-3 px-4">
-          {% if player.has_won %}
-          <span class="text-green-600 font-bold">{{ player.prize|floatformat:2 }} €</span>
-          {% else %}
-          <span class="text-red-600 font-bold">Perdu</span>
-          {% endif %}
+          <span class="text-green-600 font-bold"
+            >{{ player.prize|floatformat:2 }} €</span
+          >
         </td>
       </tr>
       {% endfor %}

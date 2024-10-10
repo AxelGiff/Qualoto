@@ -42,15 +42,8 @@ def participate_draw(request):
         number_of_random = data.get('number_of_random')
         participation = data.get('participation')  
         main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
-        bonus_numbers = random.sample(range(1, 11), 2)  # 2 numéros bonus entre 1 et 10
+        bonus_numbers = random.sample(range(1, 10), 2)  # 2 numéros bonus entre 1 et 9
         
-        if participation:  
-            user = request.user 
-            players.append({
-                'name': user.username,
-                'numbers': random.sample(range(1, 50), 5),
-                'bonus': random.sample(range(1, 11), 2)
-            })
         # Créer un nouveau tirage
         new_draw = Draws.objects.create(
             draw_date=timezone.now(),
@@ -65,7 +58,7 @@ def participate_draw(request):
                 random_user, created = Users.objects.get_or_create(username=random_username)
                 
                 random_main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
-                random_bonus_numbers = random.sample(range(1, 11), 2)  # 2 numéros bonus entre 1 et 10
+                random_bonus_numbers = random.sample(range(1, 10), 2)  # 2 numéros bonus entre 1 et 9
                 
                 # Créer un ticket pour ce joueur aléatoire
                 Tickets.objects.create(
@@ -101,7 +94,7 @@ def participate_draw(request):
     # Si méthode GET, afficher la page
     draws = Draws.objects.all().order_by('draw_date')[:3]
     numbers = list(range(1, 50))
-    bonus = list(range(1, 11))
+    bonus = list(range(1, 10))
     
     return render(request, 'participate_draw.html', {
         'draws': draws,
@@ -132,7 +125,7 @@ def simulate_draw(request):
 def create_draw(request):
     draws = Draws.objects.all().order_by('draw_date')[:10] 
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
-    bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
+    bonus = list(range(1, 10))  # Génère des numéros bonus entre 1 et 10
     
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -267,9 +260,7 @@ def draw_win(request, draw):
         
         # Calcul de la proximité par la somme
         sum_difference = evaluate_closest_sum(winning_numbers_list, player_main_numbers)
-        ## A MODIFIER CAR ERREUR NAFFICHE PAS LES GAINS
-        has_won = correct_main_numbers > 0 or correct_bonus_numbers > 0  
-
+  
         player_data = {
             'username': ticket.user.username,
             'main_numbers': player_main_numbers,
@@ -277,7 +268,6 @@ def draw_win(request, draw):
             'correct_main_numbers': correct_main_numbers,
             'correct_bonus_numbers': correct_bonus_numbers,
             'sum_difference': sum_difference,
-            'has_won': has_won,
         }
         
         players.append(player_data)

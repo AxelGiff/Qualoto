@@ -11,7 +11,15 @@
         name="number_of_random"
         placeholder="Nombre aléatoire de joueurs"
       />
-      <input type="checkbox" id="participation" onclick="" name="participation" value="participation" /> Je participe
+      <input
+        type="checkbox"
+        id="participation"
+        onclick="toggleParticipation()"
+        name="participation"
+        value="participation"
+      />
+      Je participe
+      <input type="hidden" id="logged_user_name" value="{{ user.username }}" />
     </div>
 
     <!-- Section pour ajouter un joueur -->
@@ -69,7 +77,12 @@
       </button>
       {% endfor %}
     </div>
-
+    <button
+      onclick="generateRandomGrid()"
+      class="bg-yellow-500 text-white px-4 py-2 rounded"
+    >
+      Flash
+    </button>
     <button
       onclick="saveGrid()"
       class="bg-green-500 text-white px-4 py-2 rounded mt-4"
@@ -263,23 +276,53 @@
   }
   // Soumettre les joueurs avec leurs grilles
   function submitPlayers() {
+    // Récupérer le pseudo de l'utilisateur connecté
+    const loggedUserName = document.getElementById("logged_user_name").value;
+    const participationChecked =
+      document.getElementById("participation").checked;
+
+    // Vérifier si l'utilisateur a coché la case de participation
+    if (participationChecked) {
+      // Vérifier si l'utilisateur est déjà dans la liste des joueurs
+      let playerIndex = players.findIndex(
+        (player) => player.name === loggedUserName
+      );
+
+      if (playerIndex === -1) {
+        // Si l'utilisateur connecté n'est pas encore dans la liste, l'ajouter
+        addPlayer();
+        playerIndex = players.length - 1;
+
+        // Pré-remplir le nom de l'utilisateur connecté et désactiver le champ
+        document.getElementById(`player-name-${playerIndex}`).value =
+          loggedUserName;
+        document.getElementById(`player-name-${playerIndex}`).disabled = true;
+
+        // Ouvrir automatiquement la grille pour que l'utilisateur sélectionne ses numéros
+        openGridModal(playerIndex);
+      }
+    }
+
+    // Soumettre la participation
     fetch(window.location.href, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}",
+        "X-CSRFToken": "{{ csrf_token }}", // Utiliser le CSRF token de Django pour sécuriser la requête
       },
       body: JSON.stringify({
-        players,
-        number_of_random: document.getElementById("number_of_random").value,
-        participation: document.getElementById("participation").checked,
+        players, // Envoyer la liste des joueurs
+        number_of_random: document.getElementById("number_of_random").value, // Nombre aléatoire de joueurs
+        participation: participationChecked, // Indiquer si l'utilisateur connecté participe
       }),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.redirect_url) {
-          window.location.href = `/start_draw/${data.draw_id}`; // Rediriger vers la page du tirage window.location.href
+          // Rediriger vers la page du tirage
+          window.location.href = `/start_draw/${data.draw_id}`;
         }
+
         // Réinitialiser après soumission
         players = [];
         document.getElementById("players-section").innerHTML = "";
@@ -308,6 +351,37 @@
 
     // Ajoutez l'affichage de la grille juste après le joueur
     playerDiv.appendChild(playerGridDisplay);
+  }
+  function toggleParticipation() {
+    const participationCheckbox = document.getElementById("participation");
+
+    if (participationCheckbox.checked) {
+      // Ajouter un joueur pour l'utilisateur qui participe
+      addPlayer();
+
+      // Récupérer le nom de l'utilisateur connecté à partir du champ caché
+      const loggedUserName = document.getElementById("logged_user_name").value;
+
+      // Pré-remplir le nom de l'utilisateur connecté
+      const playerIndex = players.length - 1;
+      document.getElementById(`player-name-${playerIndex}`).value =
+        loggedUserName;
+
+      // Désactiver le champ de texte pour empêcher la modification du pseudo
+      document.getElementById(`player-name-${playerIndex}`).disabled = true;
+
+      // Ouvrir automatiquement la grille pour ce joueur
+      openGridModal(playerIndex);
+    } else {
+      // Supprimer le joueur si la case est décochée
+      const loggedUserName = document.getElementById("logged_user_name").value;
+      const playerIndex = players.findIndex(
+        (player) => player.name === loggedUserName
+      );
+      if (playerIndex !== -1) {
+        removePlayer(playerIndex);
+      }
+    }
   }
 </script>
 {% endblock %}
