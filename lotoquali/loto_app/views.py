@@ -125,7 +125,7 @@ def simulate_draw(request):
 def create_draw(request):
     draws = Draws.objects.all().order_by('draw_date')[:10] 
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
-    bonus = list(range(1, 10))  # Génère des numéros bonus entre 1 et 10
+    bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
     
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -212,7 +212,7 @@ def start_draw(request, draw):
     winning_bonus_list = draw_instance.winning_bonus_numbers.split(',')
     
     tickets = Tickets.objects.filter(draw=draw_instance).select_related('user')
-    
+   
     # Prépare les données des joueurs
     players = []
     for ticket in tickets:
@@ -230,6 +230,9 @@ def start_draw(request, draw):
         'players': players,
         'total_players': len(players)
     }
+   
+    
+
     redirect_url = reverse('draw_win', kwargs={'draw': draw_instance.draw_id})
 
     if request.method == 'POST':
@@ -260,14 +263,26 @@ def draw_win(request, draw):
         
         # Calcul de la proximité par la somme
         sum_difference = evaluate_closest_sum(winning_numbers_list, player_main_numbers)
-  
+        
+        # Stocker les numéros principaux et bonus correspondants sous forme de chaînes de caractères
+        matched_main_numbers_str = ','.join(map(str, set(player_main_numbers) & set(winning_numbers_list)))
+        matched_bonus_numbers_str = ','.join(map(str, set(player_bonus_numbers) & set(winning_bonus_list)))
+        
+        has_won = correct_main_numbers > 0 or correct_bonus_numbers > 0  
+        
+       
+
+       
+        
         player_data = {
+            'user_id':ticket.user.user_id, ## On récupère l'id de l'utilisateur via l'instance du ticket
             'username': ticket.user.username,
             'main_numbers': player_main_numbers,
             'bonus_numbers': player_bonus_numbers,
             'correct_main_numbers': correct_main_numbers,
             'correct_bonus_numbers': correct_bonus_numbers,
             'sum_difference': sum_difference,
+            'has_won': has_won,
         }
         
         players.append(player_data)
@@ -276,7 +291,7 @@ def draw_win(request, draw):
     players_sorted = sorted(players, key=lambda p: (p['correct_main_numbers'], p['correct_bonus_numbers'], -p['sum_difference']), reverse=True)
     
 
- # Assigner les gains
+    # Assigner les gains
     max_winners = 10
     prizes = checkingPrize(min(len(players_sorted), max_winners))
 
@@ -286,8 +301,23 @@ def draw_win(request, draw):
             player['prize'] = prizes[idx]  
         else:
             player['rank'] = '-'  
+         # Créer un résultat pour chaque joueur et l'enregistrer dans la table Results
+        Results.objects.create(
+            ticket_id=ticket.ticket_id,
+            matched_main_numbers=matched_main_numbers_str,  # Stocker en tant que chaîne de caractères
+            matched_bonus_numbers=matched_bonus_numbers_str,  # Stocker en tant que chaîne de caractères
+        )
+         # Enregistrer les gagnants dans la table Winner si le joueur a remporté un gain
+        if player['rank'] != '-':  # Si le joueur est dans les premiers (gagnants)
+            Winners.objects.create(
+                user_id=player['user_id'],  # ID de l'utilisateur
+                draw_id=draw_instance.draw_id,  # ID du tirage
+                prize=player['prize'],         # Gain du joueur
+                ranking=player['rank']         # Rang du joueur
+            )
+    
 
-   
+    
     draw_instance.isFinished = True
     draw_instance.save()
 
@@ -300,6 +330,7 @@ def draw_win(request, draw):
     }
     
     return render(request, 'draw_win.html', context)
+
 
 
 def checkingPrize(nbPlayers):

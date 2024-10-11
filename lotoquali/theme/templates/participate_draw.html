@@ -4,12 +4,12 @@
   <div class="w-2/3 pr-8">
     <h2 class="text-2xl font-bold mb-4">Créer un tirage</h2>
     <div id="players-numbers">
-      <label for="number_of_random">Créer des joueurs aléatoires</label>
-      <input
+      <label class="block text-gray-700 text-sm font-bold mb-2" for="number_of_random">Créer des joueurs aléatoires</label>
+      <input class="rounded-lg bg-white border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         type="number"
         id="number_of_random"
         name="number_of_random"
-        placeholder="Nombre aléatoire de joueurs"
+        placeholder="Joueurs aléatoires"
       />
       <input
         type="checkbox"
@@ -21,6 +21,7 @@
       Je participe
       <input type="hidden" id="logged_user_name" value="{{ user.username }}" />
     </div>
+
 
     <!-- Section pour ajouter un joueur -->
     <div id="players-section">
@@ -47,56 +48,56 @@
   id="gridModal"
   class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
 >
-  <div class="bg-white p-8 rounded-lg shadow-lg w-1/2">
-    <h3 class="text-xl font-bold mb-4">
-      Grille du joueur <span id="player-grid-title"></span>
-    </h3>
-    <div class="grid grid-cols-10 gap-2">
-      <!-- Liste des numéros principaux -->
-      {% for num in numbers %}
-      <button
-        onclick="toggleSelection(this)"
-        data-id="{{ num }}"
-        class="text-blue-700 w-12 h-12 rounded-full"
-      >
-        {{ num }}
-      </button>
-      {% endfor %}
-    </div>
-
-    <h3 class="text-xl font-bold mb-4 mt-4">Sélectionnez vos numéros bonus</h3>
-    <div class="grid grid-cols-5 gap-2">
-      <!-- Liste des numéros bonus -->
-      {% for bonu in bonus %}
-      <button
-        onclick="toggleSelection(this)"
-        data-id="{{ bonu }}"
-        class="text-orange-700 w-12 h-12 rounded-full"
-      >
-        {{ bonu }}
-      </button>
-      {% endfor %}
-    </div>
+<div class="bg-white p-8 rounded-lg shadow-lg w-1/2">
+  <h3 class="text-xl font-bold mb-4">
+    Grille du joueur <span id="player-grid-title"></span>
+  </h3>
+  <div class="grid grid-cols-10 gap-2">
+    <!-- Liste des numéros principaux -->
+    {% for num in numbers %}
     <button
-      onclick="generateRandomGrid()"
-      class="bg-yellow-500 text-white px-4 py-2 rounded"
+      onclick="toggleSelection(this, 'main')"
+      data-id="{{ num }}"
+      data-type="main"
+      class="text-blue-700 w-12 h-12 rounded-full"
     >
-      Flash
+      {{ num }}
     </button>
-    <button
-      onclick="saveGrid()"
-      class="bg-green-500 text-white px-4 py-2 rounded mt-4"
-    >
-      Sauvegarder la grille
-    </button>
-    <button
-      onclick="closeModal()"
-      class="bg-red-500 text-white px-4 py-2 rounded mt-4"
-    >
-      Annuler
-    </button>
+    {% endfor %}
   </div>
+
+  <h3 class="text-xl font-bold mb-4 mt-4">Sélectionnez vos numéros bonus</h3>
+  <div class="grid grid-cols-5 gap-2">
+    <!-- Liste des numéros bonus -->
+    {% for bonu in bonus %}
+    <button
+      onclick="toggleSelection(this, 'bonus')"
+      data-id="{{ bonu }}"
+      data-type="bonus"
+      class="text-orange-700 w-12 h-12 rounded-full"
+    >
+      {{ bonu }}
+    </button>
+    {% endfor %}
+  </div>
+  <button onclick="flashSelection()" class="bg-green-500 text-white px-4 py-2 rounded">
+    Flash (choix aléatoire)
+  </button>
+
+  <button
+    onclick="saveGrid()"
+    class="bg-green-500 text-white px-4 py-2 rounded mt-4"
+  >
+    Sauvegarder la grille
+  </button>
+  <button
+    onclick="closeModal()"
+    class="bg-red-500 text-white px-4 py-2 rounded mt-4"
+  >
+    Annuler
+  </button>
 </div>
+
 
 <script>
   let players = [];
@@ -124,8 +125,8 @@
     });
   }
 
-  // Ajout de joueur dynamique
-  function addPlayer() {
+   // Ajout de joueur dynamique
+   function addPlayer() {
     const playerSection = document.getElementById("players-section");
     const playerIndex = players.length;
 
@@ -253,14 +254,16 @@
       document.querySelectorAll(".bg-blue-700").length;
     const selectedBonusNumbers =
       document.querySelectorAll(".bg-orange-700").length;
-
+    
     if (
       element.classList.contains("text-blue-700") &&
       selectedMainNumbers < 5
     ) {
       element.classList.remove("text-blue-700");
       element.classList.add("bg-blue-700", "text-white");
-    } else if (element.classList.contains("bg-blue-700")) {
+    } 
+    
+    else if (element.classList.contains("bg-blue-700")) {
       element.classList.remove("bg-blue-700", "text-white");
       element.classList.add("text-blue-700");
     } else if (
@@ -354,34 +357,88 @@
   }
   function toggleParticipation() {
     const participationCheckbox = document.getElementById("participation");
-
     if (participationCheckbox.checked) {
       // Ajouter un joueur pour l'utilisateur qui participe
       addPlayer();
 
+  
       // Récupérer le nom de l'utilisateur connecté à partir du champ caché
       const loggedUserName = document.getElementById("logged_user_name").value;
+      const playerIndex = players.length - 1;
 
       // Pré-remplir le nom de l'utilisateur connecté
-      const playerIndex = players.length - 1;
       document.getElementById(`player-name-${playerIndex}`).value =
         loggedUserName;
-
+        
       // Désactiver le champ de texte pour empêcher la modification du pseudo
       document.getElementById(`player-name-${playerIndex}`).disabled = true;
 
       // Ouvrir automatiquement la grille pour ce joueur
       openGridModal(playerIndex);
-    } else {
+    }else {
       // Supprimer le joueur si la case est décochée
-      const loggedUserName = document.getElementById("logged_user_name").value;
-      const playerIndex = players.findIndex(
-        (player) => player.name === loggedUserName
-      );
+      const loggedUserName = document.getElementById("logged_user_name").value.trim().toLowerCase();
+
+      // Trouver l'index du joueur en fonction du nom (en minuscules)
+      const playerIndex=players.length-1;
       if (playerIndex !== -1) {
-        removePlayer(playerIndex);
+          // Supprimer le joueur
+          removePlayer(playerIndex - 1);
+      } else {
+          console.log("Le joueur connecté n'a pas été trouvé dans la liste.");
       }
+  }
+
+  }
+// Fonction pour choisir des numéros aléatoires pour le joueur
+function flashSelection() {
+  // Générer 5 numéros principaux aléatoires entre 1 et 49
+  const randomNumbers = [];
+  while (randomNumbers.length < 5) {
+    const randNum = Math.floor(Math.random() * 49) + 1;
+    if (!randomNumbers.includes(randNum)) {
+      randomNumbers.push(randNum);
     }
   }
+
+  // Générer 2 numéros bonus aléatoires entre 1 et 10
+  const randomBonus = [];
+  while (randomBonus.length < 2) {
+    const randBonus = Math.floor(Math.random() * 10) + 1;
+    if (!randomBonus.includes(randBonus)) {
+      randomBonus.push(randBonus);
+    }
+  }
+
+  // Réinitialiser les sélections actuelles de la grille
+  resetGridSelection();
+
+  // Sélectionner automatiquement les numéros principaux aléatoires dans la grille
+  randomNumbers.forEach((num) => {
+    const button = document.querySelector(`button[data-id="${num}"][data-type="main"]`);
+    if (button) {
+      button.classList.remove("text-blue-700");
+      button.classList.add("bg-blue-700", "text-white");
+    }
+  });
+
+  // Sélectionner automatiquement les numéros bonus aléatoires dans la grille
+  randomBonus.forEach((bonus) => {
+    const button = document.querySelector(`button[data-id="${bonus}"][data-type="bonus"]`);
+    if (button) {
+      button.classList.remove("text-orange-700");
+      button.classList.add("bg-orange-700", "text-white");
+    }
+  });
+
+  // Sauvegarder les sélections aléatoires pour le joueur actuel
+  if (currentPlayerIndex !== null) {
+    players[currentPlayerIndex].numbers = randomNumbers;
+    players[currentPlayerIndex].bonus = randomBonus;
+  }
+
+  console.log("Numéros choisis aléatoirement : ", randomNumbers, "Bonus : ", randomBonus);
+}
+
 </script>
 {% endblock %}

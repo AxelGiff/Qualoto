@@ -1,4 +1,5 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} 
+{% block content %}
 <h2 class="text-3xl font-bold mb-6">Résultats du tirage</h2>
 <p class="text-lg mb-4">Tirage du {{ draw.draw_date|date:"d F Y" }}</p>
 
@@ -16,14 +17,18 @@
 
 <div class="overflow-x-auto">
   <table class="min-w-full bg-white shadow-md rounded-lg">
-    <thead class="bg-gray-800 text-black text-lg">
+    <thead class="bg-gray-800 text-white text-lg">
       <tr>
-        <th class="py-3 px-4 text-left">Joueur</th>
+        {% if players.length > 1 %}
+        <th class="py-3 px-4 text-left">Joueurs ({{ players|length }})</th>
+        {% else %}
+        <th class="py-3 px-4 text-left">Joueurs ({{ players|length }})</th>
+        {% endif %}
         <th class="py-3 px-4 text-left">Numéros principaux</th>
         <th class="py-3 px-4 text-left">Numéros bonus</th>
         <th class="py-3 px-4 text-left">Correspondance</th>
         <th class="py-3 px-4 text-left">Rang</th>
-        <th class="py-3 px-4 text-left">Prix</th>
+        <th class="py-3 px-4 text-left">Gains</th>
       </tr>
     </thead>
     <tbody>
@@ -36,12 +41,11 @@
           {{ player.correct_main_numbers }} numéros principaux corrects,
           {{ player.correct_bonus_numbers }} bonus corrects
         </td>
-        <td class="py-3 px-4">{{ player.rank }}</td>
-        <!-- Affichage du rang -->
+        <td class="py-3 px-4">{{ player.rank }}</td> <!-- Affichage du rang -->
         <td class="py-3 px-4">
-          <span class="text-green-600 font-bold"
-            >{{ player.prize|floatformat:2 }} €</span
-          >
+        
+          <span class="text-green-600 font-bold">{{ player.prize|floatformat:2 }} €</span>
+         
         </td>
       </tr>
       {% endfor %}

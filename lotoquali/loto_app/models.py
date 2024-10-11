@@ -69,8 +69,8 @@ class Draws(models.Model):
 class Results(models.Model):
     result_id = models.AutoField(primary_key=True)
     ticket_id = models.IntegerField(blank=True, null=True)
-    matched_main_numbers = models.IntegerField(blank=True, null=True)
-    matched_bonus_numbers = models.IntegerField(blank=True, null=True)
+    matched_main_numbers = models.CharField(max_length=50, blank=True, null=True)
+    matched_bonus_numbers = models.CharField(max_length=50, blank=True, null=True)
     prize = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     class Meta:
