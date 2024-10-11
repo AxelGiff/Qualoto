@@ -24,27 +24,15 @@
   <script>
     let selectedNumbers = [];
     let selectedBonus = [];
-    function submitTicket(drawId) {
-      fetch(window.location.href, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify({
-              selected_numbers: selectedNumbers,
-              selected_bonus: selectedBonus,
-              draw_id: drawId
-          })
-      })
-      .then(response => response.json())
-      .then(data => {
-          alert(data.message);
-          // Réinitialiser les sélections
-          selectedNumbers = [];
-          selectedBonus = [];
-      });
-  }
+    
+    function selectNumber(number) {
+      if (selectedNumbers.includes(number)) {
+        selectedNumbers = selectedNumbers.filter((n) => n !== number);
+      } else {
+        selectedNumbers.push(number);
+      }
+      updateSelectedNumbers();
+    }
   </script>
   {% endblock %}
 </div>

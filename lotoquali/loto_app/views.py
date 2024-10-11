@@ -34,6 +34,10 @@ def draw_view(request):
 
     return render(request, 'draw.html', {'draws': draws})
 
+def get_players(request):
+    players = Users.objects.all()
+    players_data = [{"id": player.id, "username": player.username} for player in players]
+    return JsonResponse(players_data, safe=False)
 
 def participate_draw(request):
     if request.method == 'POST':
@@ -123,7 +127,7 @@ def simulate_draw(request):
     return render(request, 'simulate_draw.html')
 
 def create_draw(request):
-    draws = Draws.objects.all().order_by('draw_date')[:10] 
+    draws = Draws.objects.all().order_by('draw_date')[:50] 
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
     bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
     
