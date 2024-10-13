@@ -36,7 +36,7 @@ def draw_view(request):
 
 def get_players(request):
     players = Users.objects.all()
-    players_data = [{"id": player.id, "username": player.username} for player in players]
+    players_data = [{"id": player.user_id, "username": player.username} for player in players]
     return JsonResponse(players_data, safe=False)
 
 def participate_draw(request):
@@ -82,7 +82,10 @@ def participate_draw(request):
                 return JsonResponse({'error': f'Informations manquantes pour le joueur: {name}'}, status=400)
 
             user, created = Users.objects.get_or_create(username=name)
-
+            if len(numbers) > 5:
+                return JsonResponse({'error': 'Trop de numéros principaux. Un maximum de 5 numéros est autorisé.'}, status=400)
+            if len(bonus) > 2:
+                return JsonResponse({'error': 'Trop de numéros bonus. Un maximum de 2 numéros est autorisé.'}, status=400)
             # Créer un ticket pour le joueur lié au nouveau tirage
             Tickets.objects.create(
                 draw=new_draw,
@@ -176,18 +179,36 @@ def home_view(request):
 User = get_user_model()
 
 
+
+from django.http import JsonResponse
+from django.contrib.auth import login
+from .forms import RegisterForm  # Assurez-vous que votre chemin est correct
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
+
+        # Vérifier si le nom d'utilisateur existe déjà avant de valider le formulaire
+        username = request.POST.get('username')
+        if Users.objects.filter(username=username).exists():
+            # Renvoyer une réponse JSON avec une erreur et le code 400
+            messages.error(request, 'Cet utilisateur existe déjà.')
+            return JsonResponse({'error': 'Cet utilisateur existe déjà'}, status=400)
+        
         if form.is_valid():
+            # Si le nom d'utilisateur est disponible, créer l'utilisateur
             user = form.save()
             login(request, user)
-            return redirect('home')  
+            return redirect('home')
         else:
-            print(form.errors)
+            # Renvoyer les erreurs du formulaire sous forme de JSON avec un statut 400
+            return JsonResponse({'error': form.errors}, status=400)
     else:
         form = RegisterForm()
+    
     return render(request, 'register.html', {'form': form})
+
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -199,7 +220,7 @@ def login_view(request):
             request.session['user_id'] = user.id
             return redirect('home')
         else:
-            return render(request, 'login.html', {'error': 'Identifiants invalides'})
+            return render(request, 'login.html', {'error': 'Identifiants invalides'},status=200)
     return render(request, 'login.html')
 
 def logout_view(request):

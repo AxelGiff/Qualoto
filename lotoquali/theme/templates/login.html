@@ -24,7 +24,9 @@
       class="w-full p-2.5 bg-gray-50 border-t-0 border-l-0 border-r-0 border-b-gray-300 text-gray-900 text-sm focus:border-b-orange-400 focus:border-t-0 focus:border-l-0 focus:border-r-0 focus:ring-0"
       required
     />
-
+    {% if error %}
+    <div class="error" style="color: red;">{{ error }}</div>
+    {% endif %}
     <button
       type="submit"
       class="block w-full mt-14 p-2 bg-[#1d2b41] text-white rounded-lg hover:bg-[#34445e] focus:ring-4 focus:ring-blue-300"

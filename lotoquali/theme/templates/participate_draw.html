@@ -21,8 +21,8 @@
       Je participe
       <input type="hidden" id="logged_user_name" value="{{ user.username }}" />
     </div>
-
-
+    
+   
     <!-- Section pour ajouter un joueur -->
     <div id="players-section">
       <button
@@ -129,12 +129,18 @@
    function addPlayer() {
     const playerSection = document.getElementById("players-section");
     const playerIndex = players.length;
-
     // Ajouter un champ input pour le joueur
     playerSection.insertAdjacentHTML(
       "beforeend",
       `
           <div id="player-${playerIndex}" class="mb-4">
+             
+            <select id="existing-player" class="border rounded px-4 py-2 mb-4">
+              <option value="">Sélectionnez un joueur existant</option>
+              {% for player in players %}
+                <option value="{{ player.user_id }}">{{ player.username }}</option>
+              {% endfor %}
+            </select>
             <input type="text" id="player-name-${playerIndex}" placeholder="Pseudo" class="border rounded px-4 py-2 mr-4">
             <button onclick="openGridModal(${playerIndex})" class="bg-blue-500 text-white px-4 py-2 rounded">
               Compléter la grille

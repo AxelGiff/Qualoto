@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from loto_app.views import create_draw
-from loto_app.views import home_view,register_view,login_view,logout_view, participate_draw, simulate_draw,start_draw,draw_win
+from loto_app.views import home_view,register_view,login_view,logout_view, participate_draw, simulate_draw,start_draw,draw_win,get_players
 
 
 urlpatterns = [
@@ -26,9 +26,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('logout',logout_view,name='logout'),
     path('participate_draw/', participate_draw, name='participate_draw'),
-    path('simulate_draw/', simulate_draw, name='simulate_draw'),
+    #path('simulate_draw/', simulate_draw, name='simulate_draw'),
     path('draw_win/<int:draw>/', draw_win, name='draw_win'),
     path('start_draw/<int:draw>/', start_draw, name='start_draw'),
+    path('get_players/', get_players, name='get_players'),
     path('draw', create_draw, name='create_draw'),
     ##path('draw', draw_view, name='draw_view'),
     path('', home_view, name='home'),

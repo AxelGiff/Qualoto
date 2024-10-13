@@ -12,35 +12,6 @@ from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
-class MyUserManager(BaseUserManager):
-    def create_user(self, username):
-        if not username:
-            raise ValueError('Le nom d\'utilisateur est obligatoire')
-
-        user = self.model(username=username)
-        user.set_unusable_password()  # Désactive le mot de passe
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username):
-        user = self.create_user(username=username)
-        user.is_admin = True
-        user.is_superuser = True
-        user.is_staff = True
-        user.save(using=self._db)
-        return user
-
-class MyUser(AbstractBaseUser):
-    username = models.CharField(max_length=150, unique=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-
-    USERNAME_FIELD = 'username'
-
-    objects = MyUserManager()
-
-    def __str__(self):
-        return self.username
 
 class UsernameAuthBackend(BaseBackend):
     def authenticate(self, request, username=None):
@@ -56,6 +27,7 @@ class UsernameAuthBackend(BaseBackend):
         except Users.DoesNotExist:
             return None
 
+
 class Draws(models.Model):
     draw_id = models.AutoField(primary_key=True)
     draw_date = models.DateTimeField(blank=True, null=True)
@@ -63,7 +35,6 @@ class Draws(models.Model):
     winning_bonus_numbers = models.CharField(max_length=50, blank=True, null=True)
     isFinished = models.IntegerField()
     class Meta:
-        managed = False
         db_table = 'draws'
 
 class Results(models.Model):
@@ -74,7 +45,6 @@ class Results(models.Model):
     prize = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'results'
 
 class Tickets(models.Model):
@@ -86,7 +56,6 @@ class Tickets(models.Model):
     purchase_date = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'tickets'
 
 class Users(models.Model):
@@ -100,7 +69,6 @@ class Users(models.Model):
         return self.user_id
 
     class Meta:
-        managed = False
         db_table = 'users'
 class Winners(models.Model):
     winner_id = models.AutoField(primary_key=True)
@@ -110,7 +78,6 @@ class Winners(models.Model):
     ranking = models.IntegerField(blank=True, null=True)
 
     class Meta:
-        managed = False
         db_table = 'winners'
 
 
