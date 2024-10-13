@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex justify-center items-center">
+  <div class="">
+    <h2 class="text-2xl font-bold mb-4">Liste des tirages</h2>
+    
+    <div class="flex justify-center items-center grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {% for draw in draws %}
+      <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        <h3 class="font-bold text-xl text-blue-600 mb-2">{{ draw.name }}</h3>
+        <p class="text-gray-700 mb-2">{{ draw.draw_date|date:"d F Y, H:i" }}</p>
+        <p class="text-gray-500 mb-4">Numéros gagnants : <span class="font-semibold text-gray-800"> {{ draw.winning_main_numbers }} (Bonus : {{ draw.winning_bonus_numbers }})</span></p>
+        <p class="text-gray-500 mb-4">Nombre de joueurs : <span class="font-semibold text-gray-800">({{ draw.players|length }})</span></p> <!-- Affiche le nombre de joueurs -->
+
+        {% if request.user.username %}
+          {% with tickets=request.user.tickets.all %}
+            {% for ticket in tickets %}
+              {% if ticket.draw.id == draw.id %}
+                <p class="text-gray-500 mb-4">Vos numéros : <span class="font-semibold text-gray-800">{{ ticket.main_numbers }} (Bonus : {{ ticket.bonus_numbers }})</span></p>
+              {% endif %}
+            {% endfor %}
+          {% endwith %}
+        {% else %}
+          <p class="text-gray-500 mb-4">Connectez-vous pour voir vos numéros.</p>
+        {% endif %}
+
+        <!-- Bouton redirigeant vers la page des gagnants -->
+        <a href="{% url 'draw_win' draw.draw_id %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg transition duration-300">
+          Voir les gagnants
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+    let selectedNumbers = [];
+    let selectedBonus = [];
+    
+    function selectNumber(number) {
+      if (selectedNumbers.includes(number)) {
+        selectedNumbers = selectedNumbers.filter((n) => n !== number);
+      } else {
+        selectedNumbers.push(number);
+      }
+      updateSelectedNumbers();
+    }
+</script>
+{% endblock %}
