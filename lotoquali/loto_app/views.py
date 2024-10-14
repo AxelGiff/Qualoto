@@ -1,34 +1,18 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout,get_user_model
 from . models import *
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-
 import json  
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
-
-from django.http import HttpResponse
+from .forms import RegisterForm 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login as auth_login
-from .forms import TicketsForm,RegisterForm
-from django.shortcuts import render, get_object_or_404
 import random
 from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser  
 
-from django.shortcuts import render, redirect
-from django.contrib import messages
-""" # Create your views here.
-def UsersList(request):
-    utilisateurs = Users.objects.all()
-    data = [{'id_user': utilisateur.id_user, 'nom': utilisateur.nom,'prenom': utilisateur.prenom,'role': utilisateur.role,'email':utilisateur.email} for utilisateur in utilisateurs]
-    serializer=UtilisateursSerializer(utilisateurs,many=True)
-    return JsonResponse(serializer.data, safe=False)
-"""
 def draw_view(request):
     draws = Draws.objects.all().order_by('draw_date')[:3]  # Exemple pour afficher 3 tirages
 
@@ -39,15 +23,57 @@ def get_players(request):
     players_data = [{"id": player.user_id, "username": player.username} for player in players]
     return JsonResponse(players_data, safe=False)
 
+
+
+# Génère les numéros de tirage aléatoires
+def generate_random_numbers(main_range, bonus_range, main_count, bonus_count):
+    main_numbers = random.sample(range(1, main_range + 1), main_count)  # Numéros principaux
+    bonus_numbers = random.sample(range(1, bonus_range + 1), bonus_count)  # Numéros bonus
+    return main_numbers, bonus_numbers
+
+# Crée un ticket pour un utilisateur
+def create_ticket(draw, user, main_numbers, bonus_numbers):
+    Tickets.objects.create(
+        draw=draw,
+        main_numbers=",".join(map(str, main_numbers)),
+        bonus_numbers=",".join(map(str, bonus_numbers)),
+        user=user
+    )
+
+# Gère la création des utilisateurs aléatoires
+def create_random_users(number_of_random, draw):
+    for _ in range(int(number_of_random)):
+        random_username = f"Joueur{random.randint(1000, 9999)}"
+        random_user, created = Users.objects.get_or_create(username=random_username)
+        main_numbers, bonus_numbers = generate_random_numbers(49, 9, 5, 2)
+        create_ticket(draw, random_user, main_numbers, bonus_numbers)
+
+# Gère les participations des utilisateurs envoyées via l'interface
+def process_player_participation(players, draw):
+    for player in players:
+        name = player.get('name')
+        numbers = player.get('numbers')
+        bonus = player.get('bonus')
+
+        if not name or not numbers or not bonus:
+            return JsonResponse({'error': f'Informations manquantes pour le joueur: {name}'}, status=400)
+        if len(numbers) > 5:
+            return JsonResponse({'error': 'Trop de numéros principaux. Un maximum de 5 numéros est autorisé.'}, status=400)
+        if len(bonus) > 2:
+            return JsonResponse({'error': 'Trop de numéros bonus. Un maximum de 2 numéros est autorisé.'}, status=400)
+
+        user, created = Users.objects.get_or_create(username=name)
+        create_ticket(draw, user, numbers, bonus)
+
 def participate_draw(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         players = data.get('players', [])
         number_of_random = data.get('number_of_random')
-        participation = data.get('participation')  
-        main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
-        bonus_numbers = random.sample(range(1, 10), 2)  # 2 numéros bonus entre 1 et 9
-        
+
+        # Génération des numéros de tirage pour un nouveau tirage
+        main_numbers, bonus_numbers = generate_random_numbers(49, 9, 5, 2)
+
         # Créer un nouveau tirage
         new_draw = Draws.objects.create(
             draw_date=timezone.now(),
@@ -56,46 +82,18 @@ def participate_draw(request):
             isFinished=False
         )
 
+        # Création des utilisateurs aléatoires si demandé
         if number_of_random:
-            for _ in range(int(number_of_random)):
-                random_username = f"Joueur{random.randint(1000, 9999)}"
-                random_user, created = Users.objects.get_or_create(username=random_username)
-                
-                random_main_numbers = random.sample(range(1, 50), 5)  # 5 numéros entre 1 et 49
-                random_bonus_numbers = random.sample(range(1, 10), 2)  # 2 numéros bonus entre 1 et 9
-                
-                # Créer un ticket pour ce joueur aléatoire
-                Tickets.objects.create(
-                    draw=new_draw,
-                    main_numbers=",".join(map(str, random_main_numbers)),
-                    bonus_numbers=",".join(map(str, random_bonus_numbers)),
-                    user=random_user
-                )
+            create_random_users(number_of_random, new_draw)
 
-        # Traiter les joueurs soumis par l'utilisateur
-        for player in players:
-            name = player.get('name')
-            numbers = player.get('numbers')
-            bonus = player.get('bonus')
+        # Gérer la participation des joueurs envoyés via l'interface
+        participation_error = process_player_participation(players, new_draw)
+        if participation_error:
+            return participation_error
 
-            if not name or not numbers or not bonus:
-                return JsonResponse({'error': f'Informations manquantes pour le joueur: {name}'}, status=400)
-
-            user, created = Users.objects.get_or_create(username=name)
-            if len(numbers) > 5:
-                return JsonResponse({'error': 'Trop de numéros principaux. Un maximum de 5 numéros est autorisé.'}, status=400)
-            if len(bonus) > 2:
-                return JsonResponse({'error': 'Trop de numéros bonus. Un maximum de 2 numéros est autorisé.'}, status=400)
-            # Créer un ticket pour le joueur lié au nouveau tirage
-            Tickets.objects.create(
-                draw=new_draw,
-                main_numbers=",".join(map(str, numbers)),
-                bonus_numbers=",".join(map(str, bonus)),
-                user=user
-            )
+        # Redirection vers la page de démarrage du tirage
         draw_id = new_draw.draw_id
         redirect_url = reverse('start_draw', kwargs={'draw': draw_id})
-        
         return JsonResponse({'message': 'Participation soumise avec succès !', 'draw_id': draw_id, 'redirect_url': redirect_url})
     
     # Si méthode GET, afficher la page
@@ -109,7 +107,6 @@ def participate_draw(request):
         'bonus': bonus,
         'csrf_token': request.COOKIES['csrftoken']
     })
-    
 def simulate_draw(request):
     if request.method == 'POST':
         winning_main_numbers = request.POST.get('winning_main_numbers')
@@ -188,10 +185,6 @@ def home_view(request):
 User = get_user_model()
 
 
-
-from django.http import JsonResponse
-from django.contrib.auth import login
-from .forms import RegisterForm  # Assurez-vous que votre chemin est correct
 
 def register_view(request):
     if request.method == 'POST':
@@ -275,96 +268,6 @@ def start_draw(request, draw):
 
 
 
-def draw_win(request, draw):
-    draw_instance = get_object_or_404(Draws, draw_id=draw)
-    
-    # Convertir les chaînes de nombres gagnants en listes
-    winning_numbers_list = list(map(int, draw_instance.winning_main_numbers.split(',')))
-    winning_bonus_list = list(map(int, draw_instance.winning_bonus_numbers.split(',')))
-    
-    # Récupérer tous les tickets associés à ce tirage
-    tickets = Tickets.objects.filter(draw=draw_instance).select_related('user')
-    
-    players = []
-    
-    for ticket in tickets:
-        player_main_numbers = list(map(int, ticket.main_numbers.split(',')))
-        player_bonus_numbers = list(map(int, ticket.bonus_numbers.split(',')))
-        
-        # Correspondance des numéros gagnants
-        correct_main_numbers = len(set(player_main_numbers) & set(winning_numbers_list))
-        correct_bonus_numbers = len(set(player_bonus_numbers) & set(winning_bonus_list))
-        
-        # Calcul de la proximité par la somme
-        sum_difference = evaluate_closest_sum(winning_numbers_list, player_main_numbers)
-        
-        # Stocker les numéros principaux et bonus correspondants sous forme de chaînes de caractères
-        matched_main_numbers_str = ','.join(map(str, set(player_main_numbers) & set(winning_numbers_list)))
-        matched_bonus_numbers_str = ','.join(map(str, set(player_bonus_numbers) & set(winning_bonus_list)))
-        
-        has_won = correct_main_numbers > 0 or correct_bonus_numbers > 0  
-        
-       
-
-       
-        
-        player_data = {
-            'user_id':ticket.user.user_id, ## On récupère l'id de l'utilisateur via l'instance du ticket
-            'username': ticket.user.username,
-            'main_numbers': player_main_numbers,
-            'bonus_numbers': player_bonus_numbers,
-            'correct_main_numbers': correct_main_numbers,
-            'correct_bonus_numbers': correct_bonus_numbers,
-            'sum_difference': sum_difference,
-            'has_won': has_won,
-        }
-        
-        players.append(player_data)
-    
-    # Trier les joueurs selon la correspondance et la proximité
-    players_sorted = sorted(players, key=lambda p: (p['correct_main_numbers'], p['correct_bonus_numbers'], -p['sum_difference']), reverse=True)
-    
-
-    # Assigner les gains
-    max_winners = 10
-    prizes = checkingPrize(min(len(players_sorted), max_winners))
-
-    for idx, player in enumerate(players_sorted):
-        if idx < max_winners:
-            player['rank'] = idx + 1
-            player['prize'] = prizes[idx]  
-        else:
-            player['rank'] = '-'  
-         # Créer un résultat pour chaque joueur et l'enregistrer dans la table Results
-        Results.objects.create(
-            ticket_id=ticket.ticket_id,
-            matched_main_numbers=matched_main_numbers_str,  # Stocker en tant que chaîne de caractères
-            matched_bonus_numbers=matched_bonus_numbers_str,  # Stocker en tant que chaîne de caractères
-        )
-         # Enregistrer les gagnants dans la table Winner si le joueur a remporté un gain
-        if player['rank'] != '-':  # Si le joueur est dans les premiers (gagnants)
-            Winners.objects.create(
-                user_id=player['user_id'],  # ID de l'utilisateur
-                draw_id=draw_instance.draw_id,  # ID du tirage
-                prize=player['prize'],         # Gain du joueur
-                ranking=player['rank']         # Rang du joueur
-            )
-    
-
-    
-    draw_instance.isFinished = True
-    draw_instance.save()
-
-    context = {
-        'draw': draw_instance,
-        'winning_numbers': winning_numbers_list,
-        'bonus_numbers': winning_bonus_list,
-        'players': players_sorted,
-        'total_players': len(players_sorted),
-    }
-    
-    return render(request, 'draw_win.html', context)
-
 
 
 def checkingPrize(nbPlayers):
@@ -394,3 +297,101 @@ def evaluate_closest_sum(winning_numbers, player_numbers):
     player_sum = sum(map(int, player_numbers))
     return abs(winning_sum - player_sum)
 
+
+# Vérifie combien de numéros correspondent entre les numéros du joueur et les numéros gagnants
+def evaluate_correct_numbers(player_numbers, winning_numbers):
+    return len(set(player_numbers) & set(winning_numbers))
+
+# Calcule la différence de somme entre les numéros du joueur et les numéros gagnants
+def calculate_sum_difference(winning_numbers, player_numbers):
+    return evaluate_closest_sum(winning_numbers, player_numbers)
+
+# Crée et sauvegarde les résultats d'un joueur dans la base de données
+def create_result(ticket, matched_main_numbers, matched_bonus_numbers):
+    Results.objects.create(
+        ticket_id=ticket.ticket_id,
+        matched_main_numbers=matched_main_numbers,  # Stocké en tant que chaîne de caractères
+        matched_bonus_numbers=matched_bonus_numbers  # Stocké en tant que chaîne de caractères
+    )
+
+# Crée et sauvegarde un gagnant dans la base de données
+def create_winner(player, draw_instance):
+    Winners.objects.create(
+        user_id=player['user_id'],  # ID de l'utilisateur
+        draw_id=draw_instance.draw_id,  # ID du tirage
+        prize=player['prize'],         # Gain du joueur
+        ranking=player['rank']         # Rang du joueur
+    )
+
+# Génère les données pour chaque joueur
+def generate_player_data(ticket, winning_numbers_list, winning_bonus_list):
+    player_main_numbers = list(map(int, ticket.main_numbers.split(',')))
+    player_bonus_numbers = list(map(int, ticket.bonus_numbers.split(',')))
+
+    correct_main_numbers = evaluate_correct_numbers(player_main_numbers, winning_numbers_list)
+    correct_bonus_numbers = evaluate_correct_numbers(player_bonus_numbers, winning_bonus_list)
+    sum_difference = calculate_sum_difference(winning_numbers_list, player_main_numbers)
+
+    matched_main_numbers_str = ','.join(map(str, set(player_main_numbers) & set(winning_numbers_list)))
+    matched_bonus_numbers_str = ','.join(map(str, set(player_bonus_numbers) & set(winning_bonus_list)))
+
+    has_won = correct_main_numbers > 0 or correct_bonus_numbers > 0
+
+    return {
+        'user_id': ticket.user.user_id,
+        'username': ticket.user.username,
+        'main_numbers': player_main_numbers,
+        'bonus_numbers': player_bonus_numbers,
+        'correct_main_numbers': correct_main_numbers,
+        'correct_bonus_numbers': correct_bonus_numbers,
+        'sum_difference': sum_difference,
+        'has_won': has_won,
+        'matched_main_numbers_str': matched_main_numbers_str,
+        'matched_bonus_numbers_str': matched_bonus_numbers_str,
+    }
+def draw_win(request, draw):
+    draw_instance = get_object_or_404(Draws, draw_id=draw)
+
+    # Convertir les chaînes de nombres gagnants en listes
+    winning_numbers_list = list(map(int, draw_instance.winning_main_numbers.split(',')))
+    winning_bonus_list = list(map(int, draw_instance.winning_bonus_numbers.split(',')))
+
+    # Récupérer tous les tickets associés à ce tirage
+    tickets = Tickets.objects.filter(draw=draw_instance).select_related('user')
+    
+    players = []
+    for ticket in tickets:
+        player_data = generate_player_data(ticket, winning_numbers_list, winning_bonus_list)
+        players.append(player_data)
+
+    # Trier les joueurs selon la correspondance et la proximité
+    players_sorted = sorted(players, key=lambda p: (p['correct_main_numbers'], p['correct_bonus_numbers'], -p['sum_difference']), reverse=True)
+
+    # Assigner les gains
+    max_winners = 10
+    prizes = checkingPrize(min(len(players_sorted), max_winners))
+
+    for idx, player in enumerate(players_sorted):
+        if idx < max_winners:
+            player['rank'] = idx + 1
+            player['prize'] = prizes[idx]
+            create_winner(player, draw_instance)
+        else:
+            player['rank'] = '-'
+
+        # Créer un résultat pour chaque joueur et l'enregistrer dans la table Results
+        create_result(ticket, player['matched_main_numbers_str'], player['matched_bonus_numbers_str'])
+
+    # Mettre à jour l'état du tirage comme terminé
+    draw_instance.isFinished = True
+    draw_instance.save()
+
+    context = {
+        'draw': draw_instance,
+        'winning_numbers': winning_numbers_list,
+        'bonus_numbers': winning_bonus_list,
+        'players': players_sorted,
+        'total_players': len(players_sorted),
+    }
+    
+    return render(request, 'draw_win.html', context)

@@ -43,7 +43,7 @@
     </button>
     {% else %}
     <p class="text-gray-600 mb-4">
-      Aucun participant n'est inscrit pour le moment.
+      Aucun participant n'est inscrit pour le moment. Vous ne pouvez pas commencer le tirage ! <a href="{% url 'participate_draw' %}" class="text-orange-600">Retour à la participation</a>
     </p>
     {% endif %}
   </div>
