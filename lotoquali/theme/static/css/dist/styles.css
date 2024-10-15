@@ -960,10 +960,6 @@ select {
   min-height: 750px;
 }
 
-.min-h-screen {
-  min-height: 100vh;
-}
-
 .w-0 {
   width: 0px;
 }

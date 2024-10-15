@@ -19,10 +19,10 @@
   <table class="min-w-full bg-white shadow-md rounded-lg">
     <thead class="bg-gray-800 text-white text-lg">
       <tr>
-        {% if players.length > 1 %}
+        {% if players|length > 1 %}
         <th class="py-3 px-4 text-left">Joueurs ({{ players|length }})</th>
         {% else %}
-        <th class="py-3 px-4 text-left">Joueurs ({{ players|length }})</th>
+        <th class="py-3 px-4 text-left">Joueur ({{ players|length }})</th>
         {% endif %}
         <th class="py-3 px-4 text-left">Numéros principaux</th>
         <th class="py-3 px-4 text-left">Numéros bonus</th>

@@ -19,9 +19,8 @@ def draw_view(request):
     return render(request, 'draw.html', {'draws': draws})
 
 def get_players(request):
-    players = Users.objects.all()
-    players_data = [{"id": player.user_id, "username": player.username} for player in players]
-    return JsonResponse(players_data, safe=False)
+    return Users.objects.all()
+
 
 
 
@@ -66,6 +65,7 @@ def process_player_participation(players, draw):
         create_ticket(draw, user, numbers, bonus)
 
 def participate_draw(request):
+    players = []  # Définir players_data par défaut comme une liste vide
     if request.method == 'POST':
         data = json.loads(request.body)
         players = data.get('players', [])
@@ -91,6 +91,7 @@ def participate_draw(request):
         if participation_error:
             return participation_error
 
+        players = Users.objects.all()  # Récupère tous les utilisateurs
         # Redirection vers la page de démarrage du tirage
         draw_id = new_draw.draw_id
         redirect_url = reverse('start_draw', kwargs={'draw': draw_id})
@@ -105,7 +106,8 @@ def participate_draw(request):
         'draws': draws,
         'numbers': numbers,
         'bonus': bonus,
-        'csrf_token': request.COOKIES['csrftoken']
+        'csrf_token': request.COOKIES['csrftoken'],
+        'players_data':players
     })
 def simulate_draw(request):
     if request.method == 'POST':
@@ -132,13 +134,20 @@ def draw_list(request):
         tickets = Tickets.objects.filter(user=request.user)  # Filtrer les tickets de l'utilisateur
         draw_ids = tickets.values_list('draw_id', flat=True)  # Obtenir les ID des tirages
         draws = Draws.objects.filter(draw_id__in=draw_ids).order_by('draw_date')  # Récupérer les tirages correspondants
+        wins = Winners.objects.filter(user=request.user)
+        draw_id_win=wins.values_list('draw_id', flat=True)
+        draw_win=Draws.objects.filter(draw_id__in=draw_id_win)
+
     else:
         # Si l'utilisateur n'est pas connecté, afficher tous les tirages
         draws = Draws.objects.all().order_by('draw_date')[:50]
     
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
     bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
-    
+    # Compter le nombre de joueurs pour chaque tirage
+    for draw in draws:
+        draw.player_count = Tickets.objects.filter(draw=draw).count()
+
     if request.method == 'POST':
         data = json.loads(request.body)
         selected_numbers = [num for num in data.get('selected_numbers') if num < 50]
@@ -171,6 +180,7 @@ def draw_list(request):
         'draws': draws,
         'numbers': numbers,
         'bonus': bonus,
+        'user_wins': draw_win,
         'csrf_token': request.COOKIES['csrftoken'] 
     })
 
@@ -307,11 +317,12 @@ def calculate_sum_difference(winning_numbers, player_numbers):
     return evaluate_closest_sum(winning_numbers, player_numbers)
 
 # Crée et sauvegarde les résultats d'un joueur dans la base de données
-def create_result(ticket, matched_main_numbers, matched_bonus_numbers):
+def create_result(ticket, matched_main_numbers, matched_bonus_numbers,prize):
     Results.objects.create(
         ticket_id=ticket.ticket_id,
         matched_main_numbers=matched_main_numbers,  # Stocké en tant que chaîne de caractères
-        matched_bonus_numbers=matched_bonus_numbers  # Stocké en tant que chaîne de caractères
+        matched_bonus_numbers=matched_bonus_numbers,  # Stocké en tant que chaîne de caractères
+        prize=prize
     )
 
 # Crée et sauvegarde un gagnant dans la base de données
@@ -379,9 +390,7 @@ def draw_win(request, draw):
         else:
             player['rank'] = '-'
 
-        # Créer un résultat pour chaque joueur et l'enregistrer dans la table Results
-        create_result(ticket, player['matched_main_numbers_str'], player['matched_bonus_numbers_str'])
-
+        create_result(tickets[idx], player['matched_main_numbers_str'], player['matched_bonus_numbers_str'],player['prize'])
     # Mettre à jour l'état du tirage comme terminé
     draw_instance.isFinished = True
     draw_instance.save()

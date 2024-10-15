@@ -134,14 +134,7 @@
       "beforeend",
       `
           <div id="player-${playerIndex}" class="mb-4">
-             
-            <select id="existing-player" class="border rounded px-4 py-2 mb-4">
-              <option value="">Sélectionnez un joueur existant</option>
-              {% for player in players %}
-                <option value="{{ player.user_id }}">{{ player.username }}</option>
-              {% endfor %}
-            </select>
-            <input type="text" id="player-name-${playerIndex}" placeholder="Pseudo" class="border rounded px-4 py-2 mr-4">
+            <input type="text" id="player-name-${playerIndex}" placeholder="Pseudo" class="border rounded px-4 py-2 mr-4" required>
             <button onclick="openGridModal(${playerIndex})" class="bg-blue-500 text-white px-4 py-2 rounded">
               Compléter la grille
             </button>
@@ -207,58 +200,55 @@
         button.classList.add("text-orange-700");
         button.classList.remove("bg-orange-700");
       }
-    });
+        });
   }
-  // Fonction pour sauvegarder la grille
+ // Fonction pour sauvegarder la grille
 function saveGrid() {
-  if (currentPlayerIndex !== null) {
-      const player = players[currentPlayerIndex];
+    if (currentPlayerIndex !== null) {
+        const player = players[currentPlayerIndex];
+  
+        // Récupérer les boutons sélectionnés
+        const selectedMainNumbers = document.querySelectorAll(".bg-blue-700");
+        const selectedBonusNumbers = document.querySelectorAll(".bg-orange-700");
+  
+        // Vérifier que l'utilisateur a bien sélectionné exactement 5 numéros principaux et 2 numéros bonus
+        if (selectedMainNumbers.length !== 5 || selectedBonusNumbers.length !== 2) {
+            alert("Veuillez choisir exactement 5 numéros principaux et 2 numéros bonus.");
+            return; 
+        }
+  
+        // Réinitialiser les numéros principaux et bonus pour le joueur actuel
+        player.numbers = [];
+        player.bonus = [];
+        console.log("test");
 
-      // Récupérer les numéros sélectionnés
-      const selectedMainNumbers = document.querySelectorAll(".bg-blue-700").length;
-      const selectedBonusNumbers = document.querySelectorAll(".bg-orange-700").length;
-
-      // Vérifier que l'utilisateur a bien sélectionné 5 numéros principaux et 2 numéros bonus
-      if (selectedMainNumbers !== 5 || selectedBonusNumbers !== 2) {
-          alert("Veuillez choisir exactement 5 numéros principaux et 2 numéros bonus.");
-          return;  // Ne pas sauvegarder si la condition n'est pas remplie
-      }
-
-      // Réinitialiser les numéros principaux et bonus pour le joueur actuel
-      player.numbers = [];
-      player.bonus = [];
-
-      // Séparer correctement les numéros principaux et les numéros bonus
-      document.querySelectorAll("button[data-id]").forEach((button) => {
-          const numId = parseInt(button.getAttribute("data-id"));
-
-          // Vérifier si le bouton est un numéro principal sélectionné
-          if (button.classList.contains("bg-blue-700")) {
-              if (numId >= 1 && numId <= 49) {
-                  player.numbers.push(numId);  // Ajouter aux numéros principaux
-              }
-          }
-
-          // Vérifier si le bouton est un numéro bonus sélectionné
-          if (button.classList.contains("bg-orange-700")) {
-              if (numId >= 1 && numId <= 10) {
-                  player.bonus.push(numId);  // Ajouter aux numéros bonus
-              }
-          }
-      });
-
-      // Enregistrer le nom du joueur
-      player.name = document.getElementById(
-          `player-name-${currentPlayerIndex}`
-      ).value;
-
-      // Fermer le modal après la sauvegarde
-      closeModal();
-
-      // Mettre à jour l'affichage du joueur
-      updatePlayerDisplay(currentPlayerIndex);
-  }
+        // Ajouter les numéros principaux
+        selectedMainNumbers.forEach((button) => {
+            const numId = parseInt(button.getAttribute("data-id"));
+            if (numId >= 1 && numId <= 49) {
+                player.numbers.push(numId);  // Ajouter aux numéros principaux
+            }
+        });
+  
+        // Ajouter les numéros bonus
+        selectedBonusNumbers.forEach((button) => {
+            const numId = parseInt(button.getAttribute("data-id"));
+            if (numId >= 1 && numId <= 10) {
+                player.bonus.push(numId);  // Ajouter aux numéros bonus
+            }
+        });
+  
+        // Enregistrer le nom du joueur
+        player.name = document.getElementById(`player-name-${currentPlayerIndex}`).value;
+  
+        // Fermer le modal après la sauvegarde
+        closeModal();
+  
+        // Mettre à jour l'affichage du joueur
+        updatePlayerDisplay(currentPlayerIndex);
+    }
 }
+
 
   // Sélectionner et désélectionner les numéros de grille
   let selectedNumbers = [];
@@ -271,7 +261,6 @@ function saveGrid() {
       document.querySelectorAll(".bg-blue-700").length;
     const selectedBonusNumbers =
       document.querySelectorAll(".bg-orange-700").length;
-    
     if (
       element.classList.contains("text-blue-700") &&
       selectedMainNumbers < 5
@@ -294,35 +283,38 @@ function saveGrid() {
       element.classList.add("text-orange-700");
     }
   }
-  // Soumettre les joueurs avec leurs grilles
   function submitPlayers() {
     // Récupérer le pseudo de l'utilisateur connecté
     const loggedUserName = document.getElementById("logged_user_name").value;
-    const participationChecked =
-      document.getElementById("participation").checked;
-
+    const participationChecked = document.getElementById("participation").checked;
+  
     // Vérifier si l'utilisateur a coché la case de participation
     if (participationChecked) {
       // Vérifier si l'utilisateur est déjà dans la liste des joueurs
-      let playerIndex = players.findIndex(
-        (player) => player.name === loggedUserName
-      );
-
+      let playerIndex = players.findIndex(player => player.name === loggedUserName);
+  
       if (playerIndex === -1) {
         // Si l'utilisateur connecté n'est pas encore dans la liste, l'ajouter
         addPlayer();
         playerIndex = players.length - 1;
-
+  
         // Pré-remplir le nom de l'utilisateur connecté et désactiver le champ
-        document.getElementById(`player-name-${playerIndex}`).value =
-          loggedUserName;
+        document.getElementById(`player-name-${playerIndex}`).value = loggedUserName;
         document.getElementById(`player-name-${playerIndex}`).disabled = true;
-
+  
         // Ouvrir automatiquement la grille pour que l'utilisateur sélectionne ses numéros
         openGridModal(playerIndex);
       }
     }
-
+  
+    // Vérifier si tous les joueurs ont un pseudo et une grille remplie
+    for (const player of players) {
+      if (!player.name.trim()) {
+        alert("Tous les joueurs doivent avoir un pseudo et une grille validée.");
+        return;
+      }
+    }
+  
     // Soumettre la participation
     fetch(window.location.href, {
       method: "POST",
@@ -336,18 +328,19 @@ function saveGrid() {
         participation: participationChecked, // Indiquer si l'utilisateur connecté participe
       }),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.redirect_url) {
-          // Rediriger vers la page du tirage
-          window.location.href = `/start_draw/${data.draw_id}`;
-        }
-
-        // Réinitialiser après soumission
-        players = [];
-        document.getElementById("players-section").innerHTML = "";
-      });
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.redirect_url) {
+        // Rediriger vers la page du tirage
+        window.location.href = `/start_draw/${data.draw_id}`;
+      }
+  
+      // Réinitialiser après soumission
+      players = [];
+      document.getElementById("players-section").innerHTML = "";
+    });
   }
+  
 
   function updatePlayerDisplay(playerIndex) {
     const player = players[currentPlayerIndex];
@@ -448,13 +441,8 @@ function flashSelection() {
     }
   });
 
-  // Sauvegarder les sélections aléatoires pour le joueur actuel
-  if (currentPlayerIndex !== null) {
-    players[currentPlayerIndex].numbers = randomNumbers;
-    players[currentPlayerIndex].bonus = randomBonus;
-  }
+ 
 
-  console.log("Numéros choisis aléatoirement : ", randomNumbers, "Bonus : ", randomBonus);
 }
 
 </script>

@@ -1,14 +1,7 @@
 {% extends 'base.html' %} {% block content %}
 <div class="container mx-auto px-4 py-8">
   <h1 class="text-3xl font-bold mb-6">Tirage au sort</h1>
-  <div class="mb-4">
-    <input
-      type="text"
-      placeholder="Rechercher un joueur..."
-      class="w-full p-2 border rounded"
-      onkeyup="filterPlayers(this.value)"
-    />
-  </div>
+  
   <div class="bg-white rounded-lg shadow-md p-6 mb-6">
     <h2 class="text-xl font-semibold mb-4">
       Liste des participants ({{ players|length }})
@@ -50,11 +43,6 @@
 </div>
 
 <script>
-  function filterPlayers(searchText) {
-    // Implémentez la logique de filtrage ici
-    console.log("Filtering players:", searchText);
-  }
-
   function startDraw() {
     // Extraire l'ID du tirage à partir de l'URL
     const urlParts = window.location.pathname.split("/");
@@ -70,7 +58,7 @@
       Tirage en cours...
     `;
 
-    // Effectuer la requête fetch
+    // la requête fetch
     fetch(window.location.href, {
       method: "POST",
       headers: {
