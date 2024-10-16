@@ -912,6 +912,18 @@ select {
   margin-top: 2rem;
 }
 
+.mr-12 {
+  margin-right: 3rem;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
+.mr-64 {
+  margin-right: 16rem;
+}
+
 .block {
   display: block;
 }

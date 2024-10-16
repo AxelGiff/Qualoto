@@ -193,14 +193,6 @@ def simulate_draw(request):
     return render(request, 'simulate_draw.html')
 
 def draw_list(request):
-    """ Vue pour afficher la liste des tirages.
-
- Si l'utilisateur est connecté, affiche les tirages auxquels il a participé, sinon affiche tous les tirages.
- Génère des numéros entre 1 et 49 ainsi que des numéros bonus entre 1 et 10.
- Compte le nombre de joueurs pour chaque tirage.
- Permet de soumettre un ticket avec au moins 5 numéros principaux et 2 bonus.
- Affiche la page en renvoyant les tirages, les numéros, les numéros bonus, les gains de l'utilisateur connecté et le jeton csrf."""
-
     if request.user.username:
         # Récupérer uniquement les tirages auxquels l'utilisateur connecté a participé
         tickets = Tickets.objects.filter(user=request.user)  # Filtrer les tickets de l'utilisateur
@@ -252,7 +244,7 @@ def draw_list(request):
         'draws': draws,
         'numbers': numbers,
         'bonus': bonus,
-        'user_wins': draw_win,
+        #'user_wins': draw_win,
         'csrf_token': request.COOKIES['csrftoken'] 
     })
 

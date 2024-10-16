@@ -1,11 +1,11 @@
 {% extends 'base.html' %} {% block content %}
 
-<div class="flex">
-  <div class="w-2/3 pr-8">
-    <h2 class="text-2xl font-bold mb-4">Créer un tirage</h2>
+<div class="flex justify-center items-center">
+  <div class="  pr-8">
+    <h2 class="text-4xl font-bold text-orange-500 mt-6  mb-12">Créer un tirage</h2>
     <div id="players-numbers">
       <label class="block text-gray-700 text-sm font-bold mb-2" for="number_of_random">Créer des joueurs aléatoires</label>
-      <input class="rounded-lg bg-white border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+      <input class="rounded-lg mb-12 bg-white border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         type="number"
         id="number_of_random"
         name="number_of_random"
@@ -27,7 +27,7 @@
     <div id="players-section">
       <button
         onclick="addPlayer()"
-        class="bg-green-500 text-white px-4 py-2 rounded mb-4"
+        class="bg-green-500 text-white  px-4 py-2 rounded mb-4"
       >
         Ajouter un joueur
       </button>
