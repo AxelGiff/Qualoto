@@ -49,7 +49,7 @@ class CheckingPrizeTests(TestCase):
     def test_prix_quand_dix_ou_plus_de_dix_joueurs(self):
         nbPlayers = 10
         expected_prizes = [
-            1200000.0,  # 40% du prize pool
+            1200000.0,  # 40%
             600000.0,   # 20%
             360000.0,   # 12%
             210000.0,   # 7%
@@ -96,3 +96,11 @@ class CheckingPrizeTests(TestCase):
             prizes = checkingPrize(nbPlayers)
             for expected, actual in zip(adjusted_prizes, prizes):
                 self.assertAlmostEqual(expected, actual, places=2)
+    def test_prix_quand_aucun_joueur_ne_participe(self):
+        nbPlayers = 0
+        # retourne une liste vide ou génère une erreur (éviter une division par zéro)
+        try:
+            prizes = checkingPrize(nbPlayers)
+            self.assertEqual(prizes, [])  # Aucune distribution de prix attendue
+        except ZeroDivisionError:
+            self.fail("checkingPrize() a provoqué une division par zéro avec 0 joueurs.")

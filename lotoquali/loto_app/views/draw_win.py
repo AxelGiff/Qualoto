@@ -22,6 +22,11 @@ def checkingPrize(nbPlayers):
     :param nbPlayers: Le nombre de joueurs.
     :return: Une liste de gains, par joueur, en €.
     """
+
+     # S'il n'y a aucun joueur, il n'y a pas de prix à distribuer
+    if nbPlayers == 0:
+        return []
+    
     prize_distribution = [
         0.40,  # 40% pour le 1er
         0.20,  # 20% pour le 2ème
