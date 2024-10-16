@@ -31,9 +31,11 @@ def draw_view(request):
     return render(request, 'draw.html', {'draws': draws})
 
 def get_players(request):
-# Retrieve all users from the database.
-    return Users.objects.all()
-
+    # Récupérer tous les utilisateurs
+    players = Users.objects.all().values('user_id', 'username')
+    
+    # Renvoie une réponse JSON contenant les joueurs
+    return JsonResponse(list(players), safe=False)
 
 
 

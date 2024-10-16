@@ -832,6 +832,10 @@ select {
   margin-bottom: 2rem;
 }
 
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -912,18 +916,6 @@ select {
   margin-top: 2rem;
 }
 
-.mr-12 {
-  margin-right: 3rem;
-}
-
-.mb-12 {
-  margin-bottom: 3rem;
-}
-
-.mr-64 {
-  margin-right: 16rem;
-}
-
 .block {
   display: block;
 }
@@ -982,10 +974,6 @@ select {
 
 .w-12 {
   width: 3rem;
-}
-
-.w-2\/3 {
-  width: 66.666667%;
 }
 
 .w-3\/6 {
