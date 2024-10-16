@@ -25,7 +25,7 @@ def draw_list(request):
 
     else:
         # Si l'utilisateur n'est pas connecté, afficher tous les tirages
-        draws = Draws.objects.all().order_by('draw_date')[:50]
+        draws = Draws.objects.all().order_by('draw_date')
     
     numbers = list(range(1, 50))  # Génère des numéros entre 1 et 49
     bonus = list(range(1, 11))  # Génère des numéros bonus entre 1 et 10
@@ -33,33 +33,6 @@ def draw_list(request):
     for draw in draws:
         draw.player_count = Tickets.objects.filter(draw=draw).count()
 
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        selected_numbers = [num for num in data.get('selected_numbers') if num < 50]
-        
-        if len(selected_numbers) < 7:  # S'assurer qu'il y a au moins 5 numéros principaux et 2 bonus
-            return JsonResponse({'message': 'Des informations manquent.'}, status=400)
-        
-        selected_bonus = selected_numbers[5:7]  # Les 2 derniers sont les bonus
-        selected_numbers = selected_numbers[:5]  # Les 5 premiers sont les principaux
-        draw_id = 1  # Remplacer par l'ID de tirage approprié
-        
-        # Convertir les listes de numéros en chaînes séparées par des virgules
-        selected_numbers_str = ",".join(map(str, selected_numbers))
-        selected_bonus_str = ",".join(map(str, selected_bonus))
-        
-        # Récupérer le tirage correspondant
-        draw = get_object_or_404(Draws, draw_id=draw_id)
-        
-        # Créer et enregistrer le ticket
-        ticket = Tickets.objects.create(
-            draw=draw,
-            main_numbers=selected_numbers_str,  
-            bonus_numbers=selected_bonus_str,  
-            user=request.user  # Utiliser l'utilisateur connecté
-        )
-        return JsonResponse({'message': 'Ticket soumis avec succès !'})
-    
     # Si la méthode GET, on affiche la page
     return render(request, 'draw_list.html', {
         'draws': draws,

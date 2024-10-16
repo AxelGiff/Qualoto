@@ -5,7 +5,7 @@
     <h2 class="text-4xl font-bold text-orange-500 mt-6  mb-12">Créer un tirage</h2>
     <div id="players-numbers">
       <label class="block text-gray-700 text-sm font-bold mb-2" for="number_of_random">Créer des joueurs aléatoires</label>
-      <input class="rounded-lg mb-12 bg-white border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+      <input class="rounded-lg mr-4 bg-white border border-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
         type="number"
         id="number_of_random"
         name="number_of_random"
@@ -23,26 +23,27 @@
     </div>
     
    
-    <!-- Section pour ajouter un joueur -->
-    <div id="players-section">
+     <!-- Section pour ajouter un joueur -->
+     <div id="players-section">
       <button
         onclick="addPlayer()"
-        class="bg-green-500 text-white  px-4 py-2 rounded mb-4"
-      >
-        Ajouter un joueur
+        class="px-4 py-2.5 hover:text-blue-600 text-m font-medium mb-12 text-black inline-flex items-center">
+     
+        <svg width="20px" class="mr-4 hover:text-blue-600" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M4 12H20M12 4V20" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+      Ajouter un joueur
       </button>
     </div>
 
     <!-- Bouton pour soumettre tous les joueurs -->
     <button
       onclick="submitPlayers()"
-      class="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-    >
-      Soumettre la participation
-    </button>
+      class="px-4 py-2.5 text-xl text-center font-medium text-white inline-flex items-center hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+     
+      Participer
+      <svg width="24px" height="24px" class="ml-2"viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 12H18M18 12L13 7M18 12L13 17" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+</button>
   </div>
 </div>
-
 <!-- Modal pour compléter la grille -->
 <div
   id="gridModal"
@@ -80,7 +81,7 @@
     </button>
     {% endfor %}
   </div>
-  <button onclick="flashSelection()" class="bg-green-500 text-white px-4 py-2 rounded">
+  <button onclick="flashSelection()" class="bg-blue-500 text-white px-4 py-2 rounded">
     Flash (choix aléatoire)
   </button>
 

@@ -2,15 +2,15 @@
 {% block content %}
 <div class="flex justify-center items-center">
   <div class="">
-    <h2 class="text-2xl font-bold mb-4">Liste des tirages</h2>
+    <h2 class="text-2xl font-bold mt-6 mb-4 text-center text-orange-500">Liste des tirages</h2>
     
     <div class="flex justify-center items-center grid grid-cols-1 lg:grid-cols-3 gap-6">
      {% for draw in draws %}
   <div class="bg-white p-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
     <h3 class="font-bold text-xl text-blue-600 mb-2">{{ draw.name }}</h3>
     <p class="text-gray-700 mb-2">{{ draw.draw_date|date:"d F Y, H:i" }}</p>
-    <p class="text-gray-500 mb-4">Numéros gagnants : <span class="font-semibold text-gray-800"> {{ draw.winning_main_numbers }} (Bonus : {{ draw.winning_bonus_numbers }})</span></p>
-    <p class="text-gray-500 mb-4">Nombre de joueurs : <span class="font-semibold text-gray-800">{{ draw.player_count }}</span></p> <!-- Affiche le nombre de joueurs -->
+    <p class="text-gray-500 mb-4">Numéros gagnants : <span class="font-semibold text-blue-500"> {{ draw.winning_main_numbers }} (Bonus : {{ draw.winning_bonus_numbers }})</span></p>
+    <p class="text-gray-500 mb-4">Nombre de joueurs : <span class="font-semibold text-orange-500">{{ draw.player_count }}</span></p> <!-- Affiche le nombre de joueurs -->
     
     {% if user_wins.draw.id %}
       <p class="text-gray-500 mb-4">Votre gain : <span class="font-semibold text-gray-800">{{ user_wins.draw_id.prize }}</span> (Rang : {{ user_wins.draw_id.ranking }})</p>
@@ -27,17 +27,4 @@
   
   </div>
 </div>
-<script>
-    let selectedNumbers = [];
-    let selectedBonus = [];
-    
-    function selectNumber(number) {
-      if (selectedNumbers.includes(number)) {
-        selectedNumbers = selectedNumbers.filter((n) => n !== number);
-      } else {
-        selectedNumbers.push(number);
-      }
-      updateSelectedNumbers();
-    }
-</script>
 {% endblock %}

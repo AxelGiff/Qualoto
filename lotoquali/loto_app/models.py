@@ -14,6 +14,9 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
 class UsernameAuthBackend(BaseBackend):
+    """
+    Authentification par pseudo uniquement.
+    """
     def authenticate(self, request, username=None):
         try:
             # Authentification par pseudo seulement
@@ -22,10 +25,14 @@ class UsernameAuthBackend(BaseBackend):
             return None
 
     def get_user(self, user_id):
+        """
+        Retourne un objet User avec l'user_id et s'il n'existe pas il ne retourne rien
+        """
         try:
             return Users.objects.get(pk=user_id)
         except Users.DoesNotExist:
             return None
+
 
 
 class Draws(models.Model):

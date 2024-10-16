@@ -92,23 +92,6 @@ def calculate_sum_difference(winning_numbers, player_numbers):
     """
     return evaluate_closest_sum(winning_numbers, player_numbers)
 
-# Crée et sauvegarde les résultats d'un joueur dans la base de données
-def create_result(ticket, matched_main_numbers, matched_bonus_numbers,prize):
-    """
-    Crée et sauvegarde les résultats d'un joueur dans la base de données
-    
-    :param ticket: L'instance du ticket associé au joueur
-    :param matched_main_numbers: Les numéros principaux correspondants entre le joueur et les numéros gagnants
-    :param matched_bonus_numbers: Les numéros bonus correspondants entre le joueur et les numéros gagnants
-    :param prize: Le gain du joueur
-    :return: None
-    """
-    Results.objects.create(
-        ticket_id=ticket.ticket_id,
-        matched_main_numbers=matched_main_numbers,  # Stocké en tant que chaîne de caractères
-        matched_bonus_numbers=matched_bonus_numbers,  # Stocké en tant que chaîne de caractères
-        prize=prize
-    )
 
 # Crée et sauvegarde un gagnant dans la base de données
 def create_winner(player, draw_instance):
@@ -200,7 +183,6 @@ def draw_win(request, draw):
         else:
             player['rank'] = '-'
 
-        create_result(tickets[idx], player['matched_main_numbers_str'], player['matched_bonus_numbers_str'],player['prize'])
     # Mettre à jour l'état du tirage comme terminé
     draw_instance.isFinished = True
     draw_instance.save()
