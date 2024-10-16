@@ -14,11 +14,24 @@ from django.utils import timezone
 from django.contrib.auth.models import AnonymousUser  
 
 def draw_view(request):
+    """
+    Renders a view displaying the latest draw events.
+
+    Fetches the latest three draw events from the database, ordered by draw date, 
+    and renders them in the 'draw.html' template.
+
+    Args:
+        request: The HTTP request object.
+
+    Returns:
+    HttpResponse: The rendered HTML page with the draws data.
+    """
     draws = Draws.objects.all().order_by('draw_date')[:3]  # Exemple pour afficher 3 tirages
 
     return render(request, 'draw.html', {'draws': draws})
 
 def get_players(request):
+# Retrieve all users from the database.
     return Users.objects.all()
 
 
@@ -26,12 +39,30 @@ def get_players(request):
 
 # Génère les numéros de tirage aléatoires
 def generate_random_numbers(main_range, bonus_range, main_count, bonus_count):
+    """
+    Génère les numéros de tirage aléatoires.
+
+    :param int main_range: La plage de numéros pour les numéros principaux
+    :param int bonus_range: La plage de numéros pour les numéros bonus
+    :param int main_count: Le nombre de numéros principaux à générer
+    :param int bonus_count: Le nombre de numéros bonus à générer
+    :return: Un tuple contenant les numéros principaux et les numéros bonus
+    """
     main_numbers = random.sample(range(1, main_range + 1), main_count)  # Numéros principaux
     bonus_numbers = random.sample(range(1, bonus_range + 1), bonus_count)  # Numéros bonus
     return main_numbers, bonus_numbers
 
 # Crée un ticket pour un utilisateur
 def create_ticket(draw, user, main_numbers, bonus_numbers):
+    """
+    Crée un ticket pour l'utilisateur lié au tirage passé en paramètre
+    avec les numéros principaux et bonus passés en paramètre.
+    :param draw: Le tirage lié au ticket
+    :param user: L'utilisateur lié au ticket
+    :param main_numbers: Les numéros principaux
+    :param bonus_numbers: Les numéros bonus
+    :return: Le ticket créé
+    """
     Tickets.objects.create(
         draw=draw,
         main_numbers=",".join(map(str, main_numbers)),
@@ -41,14 +72,31 @@ def create_ticket(draw, user, main_numbers, bonus_numbers):
 
 # Gère la création des utilisateurs aléatoires
 def create_random_users(number_of_random, draw):
+    """
+    Crée des utilisateurs aléatoires avec des numéros aléatoires pour le tirage
+    spécifié.
+
+    :param number_of_random: Le nombre d'utilisateurs aléatoires à créer
+    :param draw: Le tirage pour lequel créer des billets
+    """
     for _ in range(int(number_of_random)):
         random_username = f"Joueur{random.randint(1000, 9999)}"
         random_user, created = Users.objects.get_or_create(username=random_username)
         main_numbers, bonus_numbers = generate_random_numbers(49, 9, 5, 2)
         create_ticket(draw, random_user, main_numbers, bonus_numbers)
 
-# Gère les participations des utilisateurs envoyées via l'interface
 def process_player_participation(players, draw):
+    """
+    Traite les participations des joueurs envoyées via l'interface.
+    
+    Args:
+        players (list): Liste des joueurs avec leurs numéros principaux et bonus.
+        draw (Draws): Instance de Draws correspondant au tirage.
+    
+    Returns:
+        JsonResponse: Erreur en cas d'informations manquantes ou de mauvaise
+            format, None sinon.
+    """
     for player in players:
         name = player.get('name')
         numbers = player.get('numbers')
@@ -65,6 +113,22 @@ def process_player_participation(players, draw):
         create_ticket(draw, user, numbers, bonus)
 
 def participate_draw(request):
+    """
+    Vue pour gérer la participation des joueurs au tirage
+
+    Si la requête est en POST, il s'agit d'une participation via l'interface
+    - Génère les numéros de tirage pour un nouveau tirage
+    - Crée un nouveau tirage
+    - Crée des utilisateurs aléatoires si demandé
+    - Gère la participation des joueurs envoyés via l'interface
+    - Redirection vers la page de démarrage du tirage
+
+    Si la requête est en GET, il s'agit d'une simple affichage de la page
+    - Récupère les 3 derniers tirages
+    - Envoie les numéros principaux et bonus à la page
+    - Envoie le jeton CSRF
+    - Envoie la liste des joueurs pour affichage
+    """
     players = []  # Définir players_data par défaut comme une liste vide
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -129,6 +193,14 @@ def simulate_draw(request):
     return render(request, 'simulate_draw.html')
 
 def draw_list(request):
+    """ Vue pour afficher la liste des tirages.
+
+ Si l'utilisateur est connecté, affiche les tirages auxquels il a participé, sinon affiche tous les tirages.
+ Génère des numéros entre 1 et 49 ainsi que des numéros bonus entre 1 et 10.
+ Compte le nombre de joueurs pour chaque tirage.
+ Permet de soumettre un ticket avec au moins 5 numéros principaux et 2 bonus.
+ Affiche la page en renvoyant les tirages, les numéros, les numéros bonus, les gains de l'utilisateur connecté et le jeton csrf."""
+
     if request.user.username:
         # Récupérer uniquement les tirages auxquels l'utilisateur connecté a participé
         tickets = Tickets.objects.filter(user=request.user)  # Filtrer les tickets de l'utilisateur
@@ -186,6 +258,12 @@ def draw_list(request):
 
 
 def home_view(request):
+    """
+    Vue pour la page d'accueil.
+
+    Si l'utilisateur est connecté, la vue affiche son nom d'utilisateur et son ID.
+    Sinon, la vue n'affiche rien.
+    """
     username = request.session.get('username')
     user_id = request.session.get('user_id')
 
@@ -197,6 +275,15 @@ User = get_user_model()
 
 
 def register_view(request):
+    """
+    Vue pour la création d'un utilisateur.
+    
+    Si la méthode est GET, la vue affiche le formulaire de création d'un utilisateur.
+    Si la méthode est POST, la vue essaie de créer l'utilisateur en utilisant le formulaire.
+    Si le formulaire est valide, l'utilisateur est créé et connecté, puis redirigé vers la page d'accueil.
+    Si le formulaire contient des erreurs, la vue renvoie les erreurs sous forme de JSON avec un statut 400.
+    Si le nom d'utilisateur existe déjà, la vue renvoie une erreur avec un statut 400.
+    """
     if request.method == 'POST':
         form = RegisterForm(request.POST)
 
@@ -223,6 +310,19 @@ def register_view(request):
 
 
 def login_view(request):
+    """
+    This view handles user login functionality.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Redirects to 'home' if login is successful, otherwise renders 'login.html' with an error message.
+
+    Raises:
+        N/A
+    """
+
     if request.method == 'POST':
         username = request.POST['username']
         user = authenticate(request, username=username)
@@ -236,12 +336,22 @@ def login_view(request):
     return render(request, 'login.html')
 
 def logout_view(request):
+    
     logout(request)
     return redirect('home')
 
 
 def start_draw(request, draw):
     # Utilisation de get_object_or_404 pour la gestion des erreurs
+    """
+    Page de démarrage d'un tirage
+
+    Affiche les numéros gagnants et la liste des joueurs qui ont participé
+    à ce tirage.
+
+    Si la méthode est POST, redirige vers la page des résultats du tirage
+    """
+    
     draw_instance = get_object_or_404(Draws, draw_id=draw)
     
     # Convertit les chaînes de nombres gagnants en listes
@@ -279,8 +389,15 @@ def start_draw(request, draw):
 
 
 
-
 def checkingPrize(nbPlayers):
+    """
+    Calcul les gains pour chaque joueur en fonction du nombre de joueurs.
+    
+    Si moins de 10 joueurs, on ajuste les gains pour que le total soit de 3 000 000 €.
+    
+    :param nbPlayers: Le nombre de joueurs.
+    :return: Une liste de gains, par joueur, en €.
+    """
     prize_distribution = [
         0.40,  # 40% pour le 1er
         0.20,  # 20% pour le 2ème
@@ -300,9 +417,25 @@ def checkingPrize(nbPlayers):
         adjusted_prizes = [(prize / total_percentage) * 3_000_000 for prize in prize_distribution[:nbPlayers]]
     else:
         adjusted_prizes = [prize * 3_000_000 for prize in prize_distribution]
+
+    # S'assurer que le total est de 3 millions
+    total_prize = sum(adjusted_prizes)
+    
+    if total_prize != 3_000_000:
+        difference = 3_000_000 - total_prize
+        # Ajuster la première prime pour compenser la différence
+        adjusted_prizes[0] += difference
     
     return adjusted_prizes
+
 def evaluate_closest_sum(winning_numbers, player_numbers):
+    """
+    Calcule la différence entre la somme des numéros gagnants et la somme des numéros du joueur.
+    
+    :param winning_numbers: Les numéros gagnants
+    :param player_numbers: Les numéros choisis par le joueur
+    :return: La différence entre la somme des numéros gagnants et la somme des numéros du joueur
+    """
     winning_sum = sum(map(int, winning_numbers))
     player_sum = sum(map(int, player_numbers))
     return abs(winning_sum - player_sum)
@@ -310,14 +443,37 @@ def evaluate_closest_sum(winning_numbers, player_numbers):
 
 # Vérifie combien de numéros correspondent entre les numéros du joueur et les numéros gagnants
 def evaluate_correct_numbers(player_numbers, winning_numbers):
+    """
+    Vérifie combien de numéros correspondent entre les numéros du joueur et les numéros gagnants
+    
+    :param player_numbers: Les numéros choisis par le joueur
+    :param winning_numbers: Les numéros gagnants
+    :return: Le nombre de numéros en commun entre le joueur et les numéros gagnants
+    """
     return len(set(player_numbers) & set(winning_numbers))
 
 # Calcule la différence de somme entre les numéros du joueur et les numéros gagnants
 def calculate_sum_difference(winning_numbers, player_numbers):
+    """
+    Calcule la différence entre la somme des numéros gagnants et la somme des numéros du joueur.
+
+    :param winning_numbers: Les numéros gagnants
+    :param player_numbers: Les numéros choisis par le joueur
+    :return: La différence entre la somme des numéros gagnants et la somme des numéros du joueur
+    """
     return evaluate_closest_sum(winning_numbers, player_numbers)
 
 # Crée et sauvegarde les résultats d'un joueur dans la base de données
 def create_result(ticket, matched_main_numbers, matched_bonus_numbers,prize):
+    """
+    Crée et sauvegarde les résultats d'un joueur dans la base de données
+    
+    :param ticket: L'instance du ticket associé au joueur
+    :param matched_main_numbers: Les numéros principaux correspondants entre le joueur et les numéros gagnants
+    :param matched_bonus_numbers: Les numéros bonus correspondants entre le joueur et les numéros gagnants
+    :param prize: Le gain du joueur
+    :return: None
+    """
     Results.objects.create(
         ticket_id=ticket.ticket_id,
         matched_main_numbers=matched_main_numbers,  # Stocké en tant que chaîne de caractères
@@ -327,6 +483,13 @@ def create_result(ticket, matched_main_numbers, matched_bonus_numbers,prize):
 
 # Crée et sauvegarde un gagnant dans la base de données
 def create_winner(player, draw_instance):
+    """
+    Crée et sauvegarde un gagnant dans la base de données
+    
+    :param player: Dictionnaire contenant les informations du joueur
+    :param draw_instance: Instance de l'objet Draw correspondant au tirage
+    :return: None
+    """
     Winners.objects.create(
         user_id=player['user_id'],  # ID de l'utilisateur
         draw_id=draw_instance.draw_id,  # ID du tirage
@@ -336,6 +499,14 @@ def create_winner(player, draw_instance):
 
 # Génère les données pour chaque joueur
 def generate_player_data(ticket, winning_numbers_list, winning_bonus_list):
+    """
+    Génère les données pour chaque joueur
+    
+    :param ticket: L'instance du ticket associée au joueur
+    :param winning_numbers_list: La liste des numéros principaux gagnants
+    :param winning_bonus_list: La liste des numéros bonus gagnants
+    :return: Un dictionnaire contenant les informations du joueur
+    """
     player_main_numbers = list(map(int, ticket.main_numbers.split(',')))
     player_bonus_numbers = list(map(int, ticket.bonus_numbers.split(',')))
 
@@ -361,6 +532,16 @@ def generate_player_data(ticket, winning_numbers_list, winning_bonus_list):
         'matched_bonus_numbers_str': matched_bonus_numbers_str,
     }
 def draw_win(request, draw):
+    """
+    This function processes the draw results and calculates the winnings for the players.
+
+    Parameters:
+    - request: The HTTP request object
+    - draw: The draw identifier
+
+    Returns:
+    - Rendered webpage displaying the draw results
+    """
     draw_instance = get_object_or_404(Draws, draw_id=draw)
 
     # Convertir les chaînes de nombres gagnants en listes

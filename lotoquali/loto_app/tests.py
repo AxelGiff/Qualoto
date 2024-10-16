@@ -13,6 +13,12 @@ class DrawViewsTest(TestCase):
     
     def setUp(self):
         # Créer des utilisateurs pour les tests
+        """
+        Crée des utilisateurs pour les tests et instancie un client pour
+        envoyer des requêtes.
+
+        """
+
         self.user1 = Users.objects.create(username='player1')
         self.user2 = Users.objects.create(username='player2')
         ##self.user3 = Users.objects.create(username='player3')
@@ -22,6 +28,7 @@ class DrawViewsTest(TestCase):
         
     def test_get_players(self):
         # Tester que la vue renvoie bien les joueurs sous forme de JSON
+        
         response = self.client.get(reverse('get_players'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 2)  # Devrait retourner les 2 joueurs créés dans setUp
@@ -41,10 +48,8 @@ class DrawViewsTest(TestCase):
         self.assertIn('players', response.context)
     
     def test_draw_win(self):
-        # Créer un tirage avec des numéros gagnants
         draw = Draws.objects.create(draw_date=timezone.now(), winning_main_numbers="1,2,3,4,5", winning_bonus_numbers="1,2", isFinished=False)
         
-        # Créer des tickets pour deux joueurs
         Tickets.objects.create(ticket_id=1,user=self.user1, draw=draw, main_numbers="1,2,3,4,5", bonus_numbers="1,2")
         Tickets.objects.create(ticket_id=2,user=self.user2, draw=draw, main_numbers="10,11,12,13,14", bonus_numbers="3,4")
         
