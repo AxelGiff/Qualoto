@@ -32,6 +32,7 @@ class ParticipateDrawTests(TestCase):
     def test_too_many_bonus_numbers(self, mock_create_ticket):
         """
         Teste le cas où un utilisateur renseigne un nombre supérieur à 5 numéros principaux ou 2 bonus
+        est censé retourner une erreur 400 et le message d'erreur correspondant.
         """
         data = {
             'players': [{'name': 'player1', 'numbers': [1, 2, 3, 4, 5], 'bonus': [1, 2, 3]}]
