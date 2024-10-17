@@ -1,0 +1,82 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mx-auto px-4 py-8 ">
+  <h1 class="text-3xl flex justify-center items-center text-orange-500 text-center font-bold mb-6">Tirage au sort</h1>
+  
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">
+      Liste des participants ({{ players|length }})
+    </h2>
+    {% if players %}
+    <div class="h-96 overflow-y-auto mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {% for player in players %}
+        <div class="bg-gray-50 rounded p-4">
+          <p class="font-medium">{{ player.username }}</p>
+          <p class="text-sm text-gray-600">
+            Numéros choisis :
+            <span class="text-blue-600"
+              >{{ player.main_numbers|join:", " }}</span
+            >
+          </p>
+          <p class="text-sm text-gray-600">
+            Numéros bonus :
+            <span class="text-orange-600"
+              >{{ player.bonus_numbers|join:", " }}</span
+            >
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button
+      onclick="startDraw()"
+      class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition duration-200"
+    >
+      Lancer le tirage
+    </button>
+    {% else %}
+    <p class="text-gray-600 mb-4">
+      Aucun participant n'est inscrit pour le moment. Vous ne pouvez pas commencer le tirage ! <a href="{% url 'participate_draw' %}" class="text-orange-600">Retour à la participation</a>
+    </p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function startDraw() {
+    // Extraire l'ID du tirage à partir de l'URL
+    const urlParts = window.location.pathname.split("/");
+    const drawId = urlParts[urlParts.length - 1];
+
+    // Désactiver le bouton et montrer un spinner
+    const button = event.target;
+    button.disabled = true;
+    button.innerHTML = `
+      <svg class="animate-spin h-5 w-5 mr-3 inline" viewBox="0 0 24 24">
+        <path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4m12 0h4m-3.64-7.64l-2.83 2.83M7.05 16.95l-2.83 2.83"></path>
+      </svg>
+      Tirage en cours...
+    `;
+
+    // la requête fetch
+    fetch(window.location.href, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.draw_id) {
+          window.location.href = `/draw_win/${data.draw_id}`;
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur lors du tirage:", error);
+        button.disabled = false;
+        button.innerHTML = "Lancer le tirage";
+      });
+  }
+</script>
+{% endblock %}

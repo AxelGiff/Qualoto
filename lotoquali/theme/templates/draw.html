@@ -1,0 +1,11 @@
+{% extends 'base.html' %} {%block content%}
+
+<h1>Choisir une action</h1>
+
+<button onclick="location.href='{% url 'participate_draw' %}'">
+  Participer à un tirage
+</button>
+<button onclick="location.href='{% url 'simulate_draw' %}'">
+  Simuler un tirage
+</button>
+{%endblock%}

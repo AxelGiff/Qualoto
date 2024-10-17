@@ -1,0 +1,125 @@
+{% extends 'base.html' %} {%block content%}
+<!-- component -->
+
+     <!-- Main Section -->
+       <!-- Main Section -->
+       <section class="flex flex-col-reverse mb-32 md:flex-row md:justify-center md:items-center h-screen">
+        <div class="showcase-left my-8 mx-4 text-center md:text-left md:w-1/2">
+            <h1 class="font-extrabold text-center text-3xl md:text-4xl my-8">
+                Participez à un tirage de <span class="font-bold text-orange-500">Qualité</span>
+            </h1>
+            <div class="flex justify-center items-center">
+            <p class="font-lg absolute mb-24 text-3xl">
+                Et gagnez jusqu'à  
+            </p> 
+            <p class="font-bold relative text-6xl mt-8 mb-8 text-orange-500 "> <br/> 3.000.000 €</p>
+
+        </div>      
+            <div class="flex flex-col md:flex-row md:justify-center md:items-center">
+                {% if user.username %}
+                <a href={% url 'participate_draw' %}> <button class="bg-orange-500 mt-12 p-3 text-center rounded-lg text-white text-base md:p-3 ml-4 mw-80 hover:bg-orange-600">
+                    Jouez maintenant !
+                </button> </a>
+                {% else %}
+                <a href={% url 'register' %}> <button class="bg-orange-500 mt-12 p-3 text-center rounded-lg text-white text-base md:p-3 ml-4 mw-80 hover:bg-orange-600">
+                    Rejoignez-nous et gagnez gros !
+                </button></a>
+                {% endif %}
+            </div>
+        </div>
+    
+        <div class="showcase-right cover my-8 md:w-1/2 h-full relative">
+            <img src="../static/assets/bleu-landingpage.jpg" alt="illustration-1" class="h-full w-full object-cover" />
+            <div class="absolute inset-0 bg-black opacity-50"></div>
+
+        </div>
+    </section>
+    
+    <section class="flex flex-col-reverse lg:flex-row lg:items-center lg:justify-start p-5 mt-32 bg-white">
+      <div class="page-left my-16 md:py-8 md:mx-4 lg:w-1/2">
+          <div class="stay-productive">
+              <h2 class="text-center md:text-left md:text-4xl text-orange-500 text-2xl font-bold my-8">
+                Conditions d'un tirage
+           </h2>
+           
+              <div
+                  class="flex items-center justify-center w-3/6 mx-auto my-16 border-b-2 border-cyan-500 md:items-start md:justify-start md:mx-0 md:w-3/12 lg:w-2/6">
+                  <a class="text-center md:text-left text-cyan-500 text-base mr-2" href="{% url 'draw_list' %}">Voir la liste des tirages
+                  </a>
+
+                  <img src="../static/assets/undraw_Terms_re_6ak4.png" alt="icon-arrow" class="w-4" />
+              </div>
+              <p class="my-2 text-2xl text-[#344767]">
+                Participez dès maintenant en choisissant le pseudo de votre choix ou testez notre système en simulant un tirage !
+            <br />
+                <p class="my-2 text-2xl text-[#344767] mt-6">Le tirage se déroule ainsi :</p>
+                <ul class="list-disc text-[#344767] list-inside">
+                <li>Nombre de participants : déterminé aléatoirement à chaque tirage.</li>
+                <li>Ajout de nouveaux joueurs : vous pouvez ajouter ou créer de nouveaux joueurs pour chaque tirage.</li>
+                <li>Participation au tirage : vous décidez si les joueurs participent ou non à ce tirage, selon vos préférences.</li>
+                </ul>
+              </p>
+             
+          </div>
+
+             
+          </div>
+      </div>
+
+      <div class="page-right lg:w-1/2">
+        <img src="../static/assets/undraw_Terms_re_6ak4.png" alt="icon-arrow" class="w-full" />
+    </div>
+  </section>
+  <section class="flex flex-col lg:flex-row lg:items-center lg:justify-start p-5 mt-32 bg-white">
+        <div class="flex-shrink-0 lg:w-1/2">
+            <img src="../static/assets/undraw_Happy_announcement_re_tsm0.png" alt="icon-arrow" class="w-full" />
+        </div>
+        
+        <div class="stay-productive  ml-24 lg:w-1/2">
+            <h2 class="text-center md:text-left md:text-4xl text-orange-500 text-2xl font-bold my-8">
+                Choix des numéros
+            </h2>
+            <p class="my-2 text-2xl text-[#344767]">
+                Sélectionnez 5 numéros principaux et 2 numéros bonus afin de valider votre participation. <br />
+                <p class="my-2 text-2xl text-[#344767] mt-6">Comment ça fonctionne ?</p>
+                <ul class="text-[#344767] list-disc list-inside">
+                    <li>Sélection de numéros : Choisissez 5 numéros parmi une plage de 1 à 49, ainsi que 2 numéros bonus compris entre 1 et 9.</li>
+                    <li>Correspondance des numéros : Une fois le tirage effectué, une correspondance sera établie entre vos numéros et ceux tirés au sort.</li>
+                </ul>
+                <br />
+                <p class="my-2 text-2xl text-[#344767] mt-6">Relevez le défi, faites vos choix et préparez-vous à découvrir si vous faites partie des heureux gagnants !
+            </p>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-center w-3/6 mx-auto my-16  md:items-start md:justify-start md:mx-0 md:w-3/12 lg:w-2/6">
+        <img src="../static/assets/undraw_Grades_re_j7d6.png" alt="icon-arrow" class="w-4" />
+    </div>
+</section>
+<section class="flex flex-col-reverse lg:flex-row lg:items-center lg:justify-start p-5 mt-12 bg-white">
+    <div class="page-left my-16 md:py-8 md:mx-4 lg:w-1/2">
+        <div class="stay-productive">
+            <h2 class="text-center md:text-left md:text-4xl text-orange-500 text-2xl font-bold my-8">
+                Classement des gagnants
+            </h2>
+            <p class=" text-2xl text-[#344767]">
+                Seuls 10 joueurs maximum pourront remporter une part du jackpot exceptionnel de <span class="text-orange-500 font-bold">3.000.000 €.</span><br/> 
+                Si le nombre de gagnants est inférieur à 10, leurs gains seront répartis de manière équitable en fonction d’un pourcentage calculé selon cette formule :<br />
+                <span class="text-orange-500 font-bold">(Pourcentage du joueur / Pourcentage total) x 3.000.000 €</span>
+              <p class="my-2 text-2xl text-[#344767] mt-6">Chaque joueur a donc la possibilité de décrocher une part encore plus importante du jackpot, selon la répartition des gains !</p>
+              
+            </p>
+           
+        </div>
+
+           
+        </div>
+    </div>
+
+    <div class="page-right lg:w-1/2">
+      <img src="../static/assets/undraw_Grades_re_j7d6.png" alt="icon-arrow" class="w-full" />
+  </div>
+</section>
+
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/vnd.icon" href="../static/assets/icon-q.jpg">
+    <title>{% block title %}Qualoto.{% endblock %}</title>
+    {% tailwind_css %}
+  </head>
+  <body class="bg-white ">
+    <header
+      class="bg-[#1d2b41] shadow-[0_4px_4px_0_rgba(0,0,0,0.25)] text-white p-6"
+    >
+      <nav class="container mx-auto flex justify-between items-center">
+        <a href="{% url 'home' %}" class="text-2xl font-bold">Qualoto.</a>
+        <div>
+          {% if user.username %}
+          <a
+            href="{% url 'participate_draw' %}"
+            class="mx-4 hover:text-[#ecab39]"
+            >Jouer</a
+          >
+          {% else %}
+          <a
+            href="{% url 'register' %}"
+            class="mx-4 hover:text-[#ecab39]"
+            >Jouer</a
+          >
+          {% endif %}
+
+          <a href="{% url 'draw_list' %}" class="mx-4 hover:text-[#ecab39]"
+            >Résultats</a
+          >
+          
+
+          {% if user.username %}
+          <!-- Afficher le nom de l'utilisateur connecté -->
+          <span class="mx-4 text-[#ecab39]">{{ user.username }}</span>
+          <a href="{% url 'logout' %}" class="mx-4 hover:text-[#ecab39]"
+            >Se déconnecter</a
+          >
+          {% else %}
+          <a href="{% url 'login' %}" class="mx-4 hover:text-[#ecab39]"
+            >Se connecter</a
+          >
+          <a
+            href="{% url 'register' %}"
+            class="mx-4 border-b-2 pb-1 border-[#ecab39]"
+          >
+            <button class="items-center font-semibold gap-2 group">
+              <p
+                class="relative text-[#fff] transition-colors duration-300 group-hover:text-[#ecab39]"
+              >
+                S'inscrire
+                <span
+                  class="absolute inset-0 w-0 overflow-hidden text-[#ecab39] transition-all duration-300 group-hover:w-full"
+                  >S'inscrire</span
+                >
+              </p>
+            </button>
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+    </header>
+
+    <main class="container mx-auto ">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-[#1d2b41] text-white p-4 mt-8">
+      <div class="container mx-auto text-center">
+        &copy; 2024 Qualoto. Tous droits réservés.
+      </div>
+    </footer>
+  </body>
+</html>

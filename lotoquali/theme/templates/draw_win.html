@@ -1,0 +1,66 @@
+{% extends 'base.html' %} 
+{% block content %}
+<div class=" flex flex-col justify-center px-12 items-center">
+<h2 class="text-3xl font-bold mb-6 text-orange-500 mt-4">Résultats du tirage</h2>
+<p class="text-lg mb-4">Tirage du {{ draw.draw_date|date:"d F Y" }}</p>
+
+<div class="bg-white p-6 rounded-lg shadow-xl transition-transform transform hover:scale-105">
+<div class="mb-6">
+  <p class="font-semibold">Numéros gagnants :</p>
+  <p class="text-blue-600 text-center font-bold">{{ winning_numbers|join:", " }}</p>
+</div>
+
+<div class="mb-6">
+  <p class="font-semibold">Bonus gagnants :</p>
+  <p class="text-orange-600 text-center font-bold">{{ bonus_numbers|join:", " }}</p>
+</div>
+</div>
+</div>
+<h3 class="text-2xl text-center mt-12 mb-12 text-orange-500 font-semibold ">Classement</h3>
+
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white shadow-md rounded-lg">
+    <thead class="bg-gray-800 text-white text-lg">
+      <tr>
+        {% if players|length > 1 %}
+        <th class="py-3 px-4 text-center">Joueurs ({{ players|length }})</th>
+        {% else %}
+        <th class="py-3 px-4 text-center">Joueur ({{ players|length }})</th>
+        {% endif %}
+        <th class="py-3 px-4 text-center">Numéros principaux</th>
+        <th class="py-3 px-4 text-center">Numéros bonus</th>
+        <th class="py-3 px-4 text-center">Correspondance</th>
+        <th class="py-3 px-4 text-center">Rang</th>
+        <th class="py-3 px-4 text-center">Gains</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr class="border-b border-gray-200">
+        <td class="py-3 text-center text-orange-500 font-bold px-4">{{ player.username }}</td>
+        <td class="py-3 text-center font-bold text-blue-600 px-4">{{ player.main_numbers|join:", " }}</td>
+        <td class="py-3 text-center font-bold text-orange-600 px-4">{{ player.bonus_numbers|join:", " }}</td>
+        <td class="py-3 text-center px-4">
+          {{ player.correct_main_numbers }} numéros principaux corrects,
+          {{ player.correct_bonus_numbers }} bonus corrects
+        </td>
+        <td class="py-3 text-center ">
+          <span class="block mx-auto w-16 py-2 rounded-lg 
+            {% if player.rank == 1 %} bg-yellow-400 text-white bg-opacity-80
+            {% elif player.rank == 2 %} bg-gray-400 text-white bg-opacity-80 
+            {% elif player.rank == 3 %} bg-orange-400 text-white bg-opacity-80 
+            {% endif %}">
+            {{ player.rank }}
+          </span>
+        </td> 
+        <td class="py-3 text-center px-4">
+        
+          <span class="text-green-600 font-bold">{{ player.prize|floatformat:1 }} €</span>
+         
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %} {% block content %}
+
+<div
+  class="mt-36 mx-auto bg-white border border-white p-10 shadow-lg rounded-lg min-h-[750px] w-[530px] z-10"
+>
+  <h1 class="text-4xl font-bold text-gray-800">Rejoignez-nous</h1>
+
+  <div class="absolute text-gray-800">
+    <p class="mt-6">
+      Utilisateur existant ?<a
+        href="{% url 'login' %}"
+        class="text-blue-600 hover:text-blue-800"
+      >
+        Connectez-vous</a
+      >
+    </p>
+  </div>
+
+  <form id="register" action="{% url 'register' %}" method="post" class="mt-20">
+    {% csrf_token %}
+
+    <div class="block text-lg font-bold mb-2">
+      {{ form.username.label_tag }}
+    </div>
+    <div
+      class="w-full p-2.5 bg-gray-50 border-b-2 border-gray-300 text-gray-900 text-sm focus:border-b-orange-400 focus:ring-0"
+    >
+      {{ form.username }}
+    </div>
+    {% if form.username.errors %}
+    <div class="text-red-500 text-sm mt-1">{{ form.username.errors }}</div>
+    {% endif %}
+
+    <!-- Repeat the above pattern for other fields (email, password1, password2) -->
+
+    <button
+      type="submit"
+      id="register-submit"
+      class="block w-full mt-14 p-2 bg-[#1d2b41] text-white rounded-lg hover:bg-[#34445e] focus:ring-4 focus:ring-blue-300"
+    >
+      S'inscrire
+    </button>
+
+    <div class="relative mt-20">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-gray-300"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+      </div>
+    </div>
+  </form>
+
+  <div class="flex justify-center mt-12">
+   
+  </div>
+</div>
+
+<script>
+  var body = document.querySelector("body");
+  var imageUrl = "https://picsum.photos/1300/900/?blur" + Date.now();
+  body.style.backgroundImage = "url('" + imageUrl + "')";
+  body.style.backgroundSize = "cover";
+</script>
+
+{% endblock %}
