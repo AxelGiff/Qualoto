@@ -161,14 +161,6 @@ def participate_draw(request):
     - Génère les numéros de tirage pour un nouveau tirage
     - Crée un nouveau tirage
     - Crée des utilisateurs aléatoires si demandé
-    - Gère la participation des joueurs envoyés via l'interface
-    - Redirection vers la page de démarrage du tirage
-
-    Si la requête est en GET, il s'agit d'une simple affichage de la page
-    - Récupère les 3 derniers tirages
-    - Envoie les numéros principaux et bonus à la page
-    - Envoie le jeton CSRF
-    - Envoie la liste des joueurs pour affichage
     """
     players = []  # Définir players_data par défaut comme une liste vide
     if request.method == 'POST':

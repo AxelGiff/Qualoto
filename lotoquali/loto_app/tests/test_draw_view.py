@@ -33,9 +33,7 @@ class DrawViewsTest(TestCase):
         """
         Tester que la vue get_players renvoie bien la liste des joueurs
         enregistrés.
-
-        Envoie une requête GET pour récupérer la liste des joueurs,
-        puis vérifie que le statut de la réponse est 200 et que la
+        Puis vérifie que le statut de la réponse est 200 et que la
         liste des joueurs contient les 2 joueurs créés dans setUp.
         """
         response = self.client.get(reverse('get_players'))

@@ -5,8 +5,10 @@ from django.contrib.auth import authenticate, login, logout
 from loto_app.models import *
 import json
 from django.utils import timezone
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
-from loto_app.views import evaluate_closest_sum, checkingPrize # Assurez-vous que le chemin est correct
+from loto_app.views import evaluate_closest_sum, checkingPrize,process_player_participation # Assurez-vous que le chemin est correct
 
 
 
@@ -25,15 +27,31 @@ class ParticipateDrawTests(TestCase):
             winning_bonus_numbers="1,2",
             isFinished=False
         )
+       
+    @patch('loto_app.views.process_player_participation')
+    def test_too_many_bonus_numbers(self, mock_create_ticket):
+        """
+        Teste le cas où un utilisateur renseigne un nombre supérieur à 5 numéros principaux ou 2 bonus
+        """
+        data = {
+            'players': [{'name': 'player1', 'numbers': [1, 2, 3, 4, 5], 'bonus': [1, 2, 3]}]
+        }
+        response = process_player_participation(data['players'], self.draw)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Trop de numéros bonus. Un maximum de 2 numéros est autorisé.', json.loads(response.content).get('error'))
 
     
     def test_participate_draw_success(self):
-        # Tester que la participation à un tirage fonctionne bien
+        """
+        Teste le cas où un utilisateur participe avec des numéros principaux et bonus valides.
+        - Crée un ticket pour cet utilisateur
+        - Vérifie que le statut de la réponse est 200
+        """
         data = {
             'players': [{'name': 'player1', 'numbers': [1, 2, 3, 4, 5], 'bonus': [1, 2]}],
             'number_of_random': 1
         }
-  # Créer un ticket associé à l'utilisateur et au tirage
+  
         Tickets.objects.create(
             ticket_id=1, 
             user=self.user,
@@ -47,13 +65,3 @@ class ParticipateDrawTests(TestCase):
         self.assertIn('Participation soumise avec succès !', response.json().get('message'))
         print("Le test de participation au tirage a réussi !")
 
-    
-
-    def test_participate_draw_error_too_many_numbers(self):
-        # Tester qu'une erreur est renvoyée si un joueur soumet trop de numéros principaux
-        data = {
-            'players': [{'name': 'player1', 'numbers': [1, 3, 4, 5,6], 'bonus': [1, 2]}],
-        }
-        response = self.client.post(reverse('participate_draw'), data=json.dumps(data), content_type='application/json')
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.json())
